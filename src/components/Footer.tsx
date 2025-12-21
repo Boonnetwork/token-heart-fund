@@ -1,0 +1,116 @@
+import React from 'react';
+import { Link } from 'react-router-dom';
+import { Rocket, Twitter, Github, MessageCircle, ExternalLink } from 'lucide-react';
+
+export const Footer: React.FC = () => {
+  return (
+    <footer className="bg-card/50 border-t border-border/50 mt-auto">
+      <div className="container mx-auto px-4 py-12">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+          {/* Brand */}
+          <div className="md:col-span-2">
+            <Link to="/" className="flex items-center gap-3 mb-4">
+              <div className="w-10 h-10 rounded-xl bg-gradient-primary flex items-center justify-center">
+                <Rocket className="w-5 h-5 text-primary-foreground" />
+              </div>
+              <span className="font-display text-xl font-bold gradient-text">
+                CrowdChain
+              </span>
+            </Link>
+            <p className="text-muted-foreground max-w-md mb-6">
+              Decentralized crowdfunding powered by blockchain. Fund innovative projects with 
+              transparency, security, and trust built on BNB Smart Chain.
+            </p>
+            <div className="flex gap-4">
+              <a href="#" className="text-muted-foreground hover:text-primary transition-colors">
+                <Twitter className="w-5 h-5" />
+              </a>
+              <a href="#" className="text-muted-foreground hover:text-primary transition-colors">
+                <Github className="w-5 h-5" />
+              </a>
+              <a href="#" className="text-muted-foreground hover:text-primary transition-colors">
+                <MessageCircle className="w-5 h-5" />
+              </a>
+            </div>
+          </div>
+
+          {/* Quick Links */}
+          <div>
+            <h4 className="font-display font-semibold text-foreground mb-4">Platform</h4>
+            <ul className="space-y-2">
+              <li>
+                <Link to="/campaigns" className="text-muted-foreground hover:text-primary transition-colors">
+                  Browse Campaigns
+                </Link>
+              </li>
+              <li>
+                <Link to="/create" className="text-muted-foreground hover:text-primary transition-colors">
+                  Start a Campaign
+                </Link>
+              </li>
+              <li>
+                <Link to="/dashboard" className="text-muted-foreground hover:text-primary transition-colors">
+                  Dashboard
+                </Link>
+              </li>
+              <li>
+                <Link to="/settings" className="text-muted-foreground hover:text-primary transition-colors">
+                  Settings
+                </Link>
+              </li>
+            </ul>
+          </div>
+
+          {/* Resources */}
+          <div>
+            <h4 className="font-display font-semibold text-foreground mb-4">Resources</h4>
+            <ul className="space-y-2">
+              <li>
+                <a 
+                  href="https://testnet.bscscan.com" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="text-muted-foreground hover:text-primary transition-colors flex items-center gap-1"
+                >
+                  BSC Explorer
+                  <ExternalLink className="w-3 h-3" />
+                </a>
+              </li>
+              <li>
+                <a 
+                  href="https://testnet.bnbchain.org/faucet-smart" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="text-muted-foreground hover:text-primary transition-colors flex items-center gap-1"
+                >
+                  Testnet Faucet
+                  <ExternalLink className="w-3 h-3" />
+                </a>
+              </li>
+              <li>
+                <a href="#" className="text-muted-foreground hover:text-primary transition-colors">
+                  Documentation
+                </a>
+              </li>
+              <li>
+                <a href="#" className="text-muted-foreground hover:text-primary transition-colors">
+                  Smart Contracts
+                </a>
+              </li>
+            </ul>
+          </div>
+        </div>
+
+        <div className="border-t border-border/50 mt-8 pt-8 flex flex-col sm:flex-row justify-between items-center gap-4">
+          <p className="text-muted-foreground text-sm">
+            © 2024 CrowdChain. All rights reserved.
+          </p>
+          <p className="text-muted-foreground text-sm flex items-center gap-2">
+            <span className="w-2 h-2 rounded-full bg-emerald animate-pulse" />
+            BSC Testnet
+          </p>
+        </div>
+      </div>
+    </footer>
+  );
+};
