@@ -7,6 +7,7 @@ import { WalletProvider } from "@/contexts/WalletContext";
 import { ContractProvider } from "@/contexts/ContractContext";
 import Index from "./pages/Index";
 import Campaigns from "./pages/Campaigns";
+import CampaignDetail from "./pages/CampaignDetail";
 import CreateCampaign from "./pages/CreateCampaign";
 import Dashboard from "./pages/Dashboard";
 import Settings from "./pages/Settings";
@@ -25,6 +26,7 @@ const App = () => (
             <Routes>
               <Route path="/" element={<Index />} />
               <Route path="/campaigns" element={<Campaigns />} />
+              <Route path="/campaign/:id" element={<CampaignDetail />} />
               <Route path="/create" element={<CreateCampaign />} />
               <Route path="/dashboard" element={<Dashboard />} />
               <Route path="/settings" element={<Settings />} />
