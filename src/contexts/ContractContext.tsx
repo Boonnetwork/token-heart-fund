@@ -31,7 +31,7 @@ const CROWDFUNDING_ABI =
 
 const defaultSettings: ContractSettings = {
   tokenAddress: "0x732e22E963C914756Bf2B3401249A43d733A6A3b", // CFI Token on BSC Testnet
-  tokenABI: CFI_ABI,
+  tokenABI: TOKEN_ABI,
   crowdfundingAddress: "", // Deploy CrowdFunding.sol and add address here
   crowdfundingABI: CROWDFUNDING_ABI,
 };
