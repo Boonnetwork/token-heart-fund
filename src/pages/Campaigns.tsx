@@ -1,37 +1,172 @@
-import React from 'react';
+import React, { useState, useMemo } from 'react';
 import { Layout } from '@/components/Layout';
 import { CampaignCard, Campaign } from '@/components/CampaignCard';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Search, Filter } from 'lucide-react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useCrowdfunding } from '@/hooks/useCrowdfunding';
+import { useContracts } from '@/contexts/ContractContext';
+import { Search, Filter, Loader2, AlertCircle, Rocket } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
-const mockCampaigns: Campaign[] = [
-  { id: '1', title: 'DeFi Education Platform', shortDescription: 'Building a free educational platform to teach blockchain and DeFi concepts.', imageUrl: 'https://images.unsplash.com/photo-1639762681485-074b7f938ba0?w=800', goalAmount: 50000, raisedAmount: 32500, deadline: new Date(Date.now() + 15 * 24 * 60 * 60 * 1000), creatorAddress: '0x1234...5678', donorsCount: 128, status: 'active', tokenSymbol: 'TOKEN' },
-  { id: '2', title: 'Green Energy NFT Marketplace', shortDescription: 'Carbon-neutral NFT marketplace that plants trees.', imageUrl: 'https://images.unsplash.com/photo-1473341304170-971dccb5ac1e?w=800', goalAmount: 100000, raisedAmount: 87000, deadline: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), creatorAddress: '0xabcd...efgh', donorsCount: 256, status: 'active', tokenSymbol: 'TOKEN' },
-  { id: '3', title: 'Web3 Gaming Studio', shortDescription: 'Creating play-to-earn games with fair tokenomics.', imageUrl: 'https://images.unsplash.com/photo-1511512578047-dfb367046420?w=800', goalAmount: 75000, raisedAmount: 75000, deadline: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000), creatorAddress: '0x9876...5432', donorsCount: 189, status: 'completed', tokenSymbol: 'TOKEN' },
-  { id: '4', title: 'DAO Governance Tools', shortDescription: 'Open-source tools for decentralized governance.', imageUrl: 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=800', goalAmount: 40000, raisedAmount: 12000, deadline: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), creatorAddress: '0x5555...6666', donorsCount: 45, status: 'active', tokenSymbol: 'TOKEN' },
-];
+type StatusFilter = 'all' | 'active' | 'completed' | 'failed' | 'cancelled';
+type SortOption = 'newest' | 'ending-soon' | 'most-funded' | 'most-backers';
 
 const Campaigns = () => {
+  const { campaigns, isLoading, tokenSymbol } = useCrowdfunding();
+  const { crowdfundingContract } = useContracts();
+  const [searchQuery, setSearchQuery] = useState('');
+  const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
+  const [sortOption, setSortOption] = useState<SortOption>('newest');
+
+  const filteredAndSortedCampaigns = useMemo(() => {
+    let result = campaigns.map(c => ({
+      id: c.id.toString(),
+      title: c.title,
+      shortDescription: c.description.slice(0, 150) + (c.description.length > 150 ? '...' : ''),
+      imageUrl: c.imageUrl,
+      goalAmount: parseFloat(c.goalAmount),
+      raisedAmount: parseFloat(c.raisedAmount),
+      deadline: c.deadline,
+      creatorAddress: c.creator,
+      donorsCount: c.donorCount,
+      status: c.status === 'cancelled' ? 'failed' : c.status,
+      tokenSymbol: tokenSymbol,
+    } as Campaign));
+
+    // Filter by search
+    if (searchQuery) {
+      const query = searchQuery.toLowerCase();
+      result = result.filter(c => 
+        c.title.toLowerCase().includes(query) || 
+        c.shortDescription.toLowerCase().includes(query)
+      );
+    }
+
+    // Filter by status
+    if (statusFilter !== 'all') {
+      result = result.filter(c => c.status === statusFilter);
+    }
+
+    // Sort
+    switch (sortOption) {
+      case 'newest':
+        result.sort((a, b) => parseInt(b.id) - parseInt(a.id));
+        break;
+      case 'ending-soon':
+        result.sort((a, b) => a.deadline.getTime() - b.deadline.getTime());
+        break;
+      case 'most-funded':
+        result.sort((a, b) => b.raisedAmount - a.raisedAmount);
+        break;
+      case 'most-backers':
+        result.sort((a, b) => b.donorsCount - a.donorsCount);
+        break;
+    }
+
+    return result;
+  }, [campaigns, searchQuery, statusFilter, sortOption, tokenSymbol]);
+
+  if (!crowdfundingContract) {
+    return (
+      <Layout>
+        <div className="container mx-auto px-4 py-20 text-center">
+          <AlertCircle className="w-16 h-16 text-muted-foreground mx-auto mb-6" />
+          <h1 className="font-display text-2xl font-bold text-foreground mb-4">Contracts Not Configured</h1>
+          <p className="text-muted-foreground mb-6">
+            Please configure the smart contract addresses in the settings page to view campaigns.
+          </p>
+          <Button variant="gradient" asChild>
+            <Link to="/settings">Go to Settings</Link>
+          </Button>
+        </div>
+      </Layout>
+    );
+  }
+
   return (
     <Layout>
       <div className="container mx-auto px-4 py-12">
-        <div className="mb-10">
-          <h1 className="font-display text-3xl md:text-4xl font-bold text-foreground mb-4">All Campaigns</h1>
-          <p className="text-muted-foreground">Discover and support innovative blockchain projects</p>
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-10">
+          <div>
+            <h1 className="font-display text-3xl md:text-4xl font-bold text-foreground mb-2">All Campaigns</h1>
+            <p className="text-muted-foreground">Discover and support innovative blockchain projects</p>
+          </div>
+          <Button variant="gradient" asChild>
+            <Link to="/create"><Rocket className="w-4 h-4 mr-2" />Create Campaign</Link>
+          </Button>
         </div>
-        <div className="flex gap-4 mb-8">
+        
+        {/* Filters */}
+        <div className="flex flex-col sm:flex-row gap-4 mb-8">
           <div className="relative flex-1 max-w-md">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-            <Input placeholder="Search campaigns..." className="pl-10" />
+            <Input 
+              placeholder="Search campaigns..." 
+              className="pl-10"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
           </div>
-          <Button variant="outline"><Filter className="w-4 h-4 mr-2" />Filter</Button>
+          <Select value={statusFilter} onValueChange={(v) => setStatusFilter(v as StatusFilter)}>
+            <SelectTrigger className="w-full sm:w-40">
+              <Filter className="w-4 h-4 mr-2" />
+              <SelectValue placeholder="Status" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Status</SelectItem>
+              <SelectItem value="active">Active</SelectItem>
+              <SelectItem value="completed">Completed</SelectItem>
+              <SelectItem value="failed">Failed</SelectItem>
+            </SelectContent>
+          </Select>
+          <Select value={sortOption} onValueChange={(v) => setSortOption(v as SortOption)}>
+            <SelectTrigger className="w-full sm:w-44">
+              <SelectValue placeholder="Sort by" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="newest">Newest First</SelectItem>
+              <SelectItem value="ending-soon">Ending Soon</SelectItem>
+              <SelectItem value="most-funded">Most Funded</SelectItem>
+              <SelectItem value="most-backers">Most Backers</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {mockCampaigns.map((campaign) => (
-            <CampaignCard key={campaign.id} campaign={campaign} />
-          ))}
-        </div>
+
+        {/* Results */}
+        {isLoading ? (
+          <div className="flex items-center justify-center py-20">
+            <Loader2 className="w-10 h-10 text-primary animate-spin" />
+          </div>
+        ) : filteredAndSortedCampaigns.length === 0 ? (
+          <div className="text-center py-20">
+            <Rocket className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
+            <h2 className="font-display text-xl font-semibold text-foreground mb-2">
+              {searchQuery || statusFilter !== 'all' ? 'No campaigns found' : 'No campaigns yet'}
+            </h2>
+            <p className="text-muted-foreground mb-6">
+              {searchQuery || statusFilter !== 'all' 
+                ? 'Try adjusting your search or filters'
+                : 'Be the first to create a campaign!'}
+            </p>
+            {!searchQuery && statusFilter === 'all' && (
+              <Button variant="gradient" asChild>
+                <Link to="/create">Create First Campaign</Link>
+              </Button>
+            )}
+          </div>
+        ) : (
+          <>
+            <p className="text-sm text-muted-foreground mb-4">
+              Showing {filteredAndSortedCampaigns.length} campaign{filteredAndSortedCampaigns.length !== 1 ? 's' : ''}
+            </p>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {filteredAndSortedCampaigns.map((campaign) => (
+                <CampaignCard key={campaign.id} campaign={campaign} />
+              ))}
+            </div>
+          </>
+        )}
       </div>
     </Layout>
   );

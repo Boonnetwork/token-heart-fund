@@ -22,11 +22,16 @@ interface ContractContextType {
   getAllowance: () => Promise<string>;
 }
 
+// Placeholder ABIs - replace addresses after deploying contracts
+const TOKEN_ABI = '[{"inputs":[],"name":"name","outputs":[{"type":"string"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"symbol","outputs":[{"type":"string"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"decimals","outputs":[{"type":"uint8"}],"stateMutability":"view","type":"function"},{"inputs":[{"name":"account","type":"address"}],"name":"balanceOf","outputs":[{"type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"name":"spender","type":"address"},{"name":"amount","type":"uint256"}],"name":"approve","outputs":[{"type":"bool"}],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"name":"owner","type":"address"},{"name":"spender","type":"address"}],"name":"allowance","outputs":[{"type":"uint256"}],"stateMutability":"view","type":"function"}]';
+
+const CROWDFUNDING_ABI = '[{"inputs":[],"name":"campaignCount","outputs":[{"type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"name":"_campaignId","type":"uint256"}],"name":"getCampaign","outputs":[{"components":[{"name":"id","type":"uint256"},{"name":"creator","type":"address"},{"name":"title","type":"string"},{"name":"description","type":"string"},{"name":"imageUrl","type":"string"},{"name":"goalAmount","type":"uint256"},{"name":"raisedAmount","type":"uint256"},{"name":"deadline","type":"uint256"},{"name":"createdAt","type":"uint256"},{"name":"claimed","type":"bool"},{"name":"cancelled","type":"bool"},{"name":"donorCount","type":"uint256"}],"type":"tuple"}],"stateMutability":"view","type":"function"},{"inputs":[{"name":"_title","type":"string"},{"name":"_description","type":"string"},{"name":"_imageUrl","type":"string"},{"name":"_goalAmount","type":"uint256"},{"name":"_durationDays","type":"uint256"}],"name":"createCampaign","outputs":[{"type":"uint256"}],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"name":"_campaignId","type":"uint256"},{"name":"_amount","type":"uint256"}],"name":"donate","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"name":"_campaignId","type":"uint256"}],"name":"claimFunds","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"name":"_campaignId","type":"uint256"}],"name":"claimRefund","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"name":"_campaignId","type":"uint256"}],"name":"cancelCampaign","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"name":"_campaignId","type":"uint256"}],"name":"getCampaignDonations","outputs":[{"components":[{"name":"donor","type":"address"},{"name":"amount","type":"uint256"},{"name":"timestamp","type":"uint256"}],"type":"tuple[]"}],"stateMutability":"view","type":"function"},{"inputs":[{"name":"_campaignId","type":"uint256"},{"name":"_donor","type":"address"}],"name":"getDonorContribution","outputs":[{"type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"name":"_creator","type":"address"}],"name":"getCampaignsByCreator","outputs":[{"type":"uint256[]"}],"stateMutability":"view","type":"function"},{"inputs":[{"name":"_donor","type":"address"}],"name":"getCampaignsByDonor","outputs":[{"type":"uint256[]"}],"stateMutability":"view","type":"function"}]';
+
 const defaultSettings: ContractSettings = {
   tokenAddress: '',
-  tokenABI: '[]',
+  tokenABI: TOKEN_ABI,
   crowdfundingAddress: '',
-  crowdfundingABI: '[]',
+  crowdfundingABI: CROWDFUNDING_ABI,
 };
 
 const ContractContext = createContext<ContractContextType | undefined>(undefined);
