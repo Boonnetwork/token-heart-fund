@@ -1,32 +1,32 @@
-import React, { useState } from 'react';
-import { Layout } from '@/components/Layout';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { useContracts } from '@/contexts/ContractContext';
-import { Save, AlertTriangle, Lock, ShieldCheck } from 'lucide-react';
-import { toast } from 'sonner';
+import React, { useState } from "react";
+import { Layout } from "@/components/Layout";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { useContracts } from "@/contexts/ContractContext";
+import { Save, AlertTriangle, Lock, ShieldCheck } from "lucide-react";
+import { toast } from "sonner";
 
-const ADMIN_PASSWORD = 'crowdchain2024'; // Change this to your desired password
+const ADMIN_PASSWORD = "Yahoo111."; // Change this to your desired password
 
 const Settings = () => {
   const { settings, updateSettings } = useContracts();
   const [formData, setFormData] = useState(settings);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
     if (password === ADMIN_PASSWORD) {
       setIsAuthenticated(true);
-      setError('');
-      toast.success('Admin access granted');
+      setError("");
+      toast.success("Admin access granted");
     } else {
-      setError('Invalid password');
-      toast.error('Invalid password');
+      setError("Invalid password");
+      toast.error("Invalid password");
     }
   };
 
@@ -35,9 +35,9 @@ const Settings = () => {
       JSON.parse(formData.tokenABI);
       JSON.parse(formData.crowdfundingABI);
       updateSettings(formData);
-      toast.success('Settings saved successfully!');
+      toast.success("Settings saved successfully!");
     } catch (e) {
-      toast.error('Invalid JSON in ABI fields');
+      toast.error("Invalid JSON in ABI fields");
     }
   };
 
@@ -64,7 +64,7 @@ const Settings = () => {
                     placeholder="Enter password..."
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    className={error ? 'border-destructive' : ''}
+                    className={error ? "border-destructive" : ""}
                   />
                   {error && <p className="text-destructive text-sm">{error}</p>}
                 </div>
@@ -92,7 +92,9 @@ const Settings = () => {
           <AlertTriangle className="w-5 h-5 text-yellow-500 shrink-0 mt-0.5" />
           <div>
             <p className="text-foreground font-medium">Important</p>
-            <p className="text-muted-foreground text-sm">These settings are stored locally. Make sure to enter valid contract addresses and ABIs for BSC Testnet.</p>
+            <p className="text-muted-foreground text-sm">
+              These settings are stored locally. Make sure to enter valid contract addresses and ABIs for BSC Testnet.
+            </p>
           </div>
         </div>
 
@@ -104,11 +106,21 @@ const Settings = () => {
           <CardContent className="space-y-4">
             <div className="space-y-2">
               <Label>Token Contract Address</Label>
-              <Input placeholder="0x..." value={formData.tokenAddress} onChange={(e) => setFormData({ ...formData, tokenAddress: e.target.value })} />
+              <Input
+                placeholder="0x..."
+                value={formData.tokenAddress}
+                onChange={(e) => setFormData({ ...formData, tokenAddress: e.target.value })}
+              />
             </div>
             <div className="space-y-2">
               <Label>Token ABI (JSON)</Label>
-              <Textarea placeholder='[{"inputs":[],...}]' rows={6} className="font-mono text-xs" value={formData.tokenABI} onChange={(e) => setFormData({ ...formData, tokenABI: e.target.value })} />
+              <Textarea
+                placeholder='[{"inputs":[],...}]'
+                rows={6}
+                className="font-mono text-xs"
+                value={formData.tokenABI}
+                onChange={(e) => setFormData({ ...formData, tokenABI: e.target.value })}
+              />
             </div>
           </CardContent>
         </Card>
@@ -121,11 +133,21 @@ const Settings = () => {
           <CardContent className="space-y-4">
             <div className="space-y-2">
               <Label>Contract Address</Label>
-              <Input placeholder="0x..." value={formData.crowdfundingAddress} onChange={(e) => setFormData({ ...formData, crowdfundingAddress: e.target.value })} />
+              <Input
+                placeholder="0x..."
+                value={formData.crowdfundingAddress}
+                onChange={(e) => setFormData({ ...formData, crowdfundingAddress: e.target.value })}
+              />
             </div>
             <div className="space-y-2">
               <Label>Contract ABI (JSON)</Label>
-              <Textarea placeholder='[{"inputs":[],...}]' rows={6} className="font-mono text-xs" value={formData.crowdfundingABI} onChange={(e) => setFormData({ ...formData, crowdfundingABI: e.target.value })} />
+              <Textarea
+                placeholder='[{"inputs":[],...}]'
+                rows={6}
+                className="font-mono text-xs"
+                value={formData.crowdfundingABI}
+                onChange={(e) => setFormData({ ...formData, crowdfundingABI: e.target.value })}
+              />
             </div>
           </CardContent>
         </Card>
