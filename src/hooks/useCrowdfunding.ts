@@ -33,34 +33,47 @@ export const useCrowdfunding = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [campaignCount, setCampaignCount] = useState(0);
 
-  const formatCampaign = useCallback((raw: any, decimals: number): CampaignData => {
+  const formatCampaign = useCallback((raw: any, decimals: number, id: number): CampaignData => {
     const now = Date.now();
     const deadline = new Date(raw.deadline.toNumber() * 1000);
-    const goalAmount = ethers.utils.formatUnits(raw.goalAmount, decimals);
-    const raisedAmount = ethers.utils.formatUnits(raw.raisedAmount, decimals);
+    const goalAmount = ethers.utils.formatUnits(raw.goal, decimals);
+    const raisedAmount = ethers.utils.formatUnits(raw.raised, decimals);
+    
+    // Parse metadata JSON string
+    let title = 'Untitled Campaign';
+    let description = '';
+    let imageUrl = 'https://images.unsplash.com/photo-1639762681485-074b7f938ba0?w=800';
+    
+    try {
+      const metadata = JSON.parse(raw.metadata);
+      title = metadata.title || title;
+      description = metadata.description || description;
+      imageUrl = metadata.imageUrl || imageUrl;
+    } catch {
+      // If metadata is not valid JSON, use it as title
+      title = raw.metadata || title;
+    }
     
     let status: CampaignData['status'] = 'active';
-    if (raw.cancelled) {
-      status = 'cancelled';
-    } else if (raw.claimed) {
+    if (raw.claimed) {
       status = 'completed';
     } else if (deadline.getTime() < now) {
       status = parseFloat(raisedAmount) >= parseFloat(goalAmount) ? 'completed' : 'failed';
     }
 
     return {
-      id: raw.id.toNumber(),
+      id,
       creator: raw.creator,
-      title: raw.title,
-      description: raw.description,
-      imageUrl: raw.imageUrl || 'https://images.unsplash.com/photo-1639762681485-074b7f938ba0?w=800',
+      title,
+      description,
+      imageUrl,
       goalAmount,
       raisedAmount,
       deadline,
-      createdAt: new Date(raw.createdAt.toNumber() * 1000),
+      createdAt: deadline, // Contract doesn't store createdAt, use deadline as fallback
       claimed: raw.claimed,
-      cancelled: raw.cancelled,
-      donorCount: raw.donorCount.toNumber(),
+      cancelled: false, // Contract doesn't have cancelled field
+      donorCount: 0, // Contract doesn't track donor count
       status,
     };
   }, []);
@@ -70,17 +83,24 @@ export const useCrowdfunding = () => {
     
     setIsLoading(true);
     try {
-      const count = await crowdfundingContract.campaignCount();
-      setCampaignCount(count.toNumber());
+      // Fetch campaigns starting from id 0, incrementing until we get an error
+      const fetchedCampaigns: CampaignData[] = [];
+      let id = 0;
       
-      const campaignPromises = [];
-      for (let i = 1; i <= count.toNumber(); i++) {
-        campaignPromises.push(crowdfundingContract.getCampaign(i));
+      while (true) {
+        try {
+          const raw = await crowdfundingContract.getCampaign(id);
+          // Check if campaign has valid data (creator is not zero address)
+          if (raw.creator === ethers.constants.AddressZero) break;
+          fetchedCampaigns.push(formatCampaign(raw, tokenDecimals, id));
+          id++;
+        } catch {
+          break;
+        }
       }
       
-      const rawCampaigns = await Promise.all(campaignPromises);
-      const formatted = rawCampaigns.map((c) => formatCampaign(c, tokenDecimals));
-      setCampaigns(formatted);
+      setCampaignCount(fetchedCampaigns.length);
+      setCampaigns(fetchedCampaigns);
     } catch (error) {
       console.error('Error fetching campaigns:', error);
     } finally {
@@ -93,7 +113,7 @@ export const useCrowdfunding = () => {
     
     try {
       const raw = await crowdfundingContract.getCampaign(id);
-      return formatCampaign(raw, tokenDecimals);
+      return formatCampaign(raw, tokenDecimals, id);
     } catch (error) {
       console.error('Error fetching campaign:', error);
       return null;
@@ -142,15 +162,17 @@ export const useCrowdfunding = () => {
 
     try {
       const goalWei = ethers.utils.parseUnits(goalAmount, tokenDecimals);
-      const tx = await crowdfundingContract.createCampaign(
-        title,
-        description,
-        imageUrl,
-        goalWei,
-        durationDays
-      );
+      // Contract expects: _goal, _duration (in seconds), _metadata (JSON string)
+      const durationSeconds = durationDays * 24 * 60 * 60;
+      const metadata = JSON.stringify({ title, description, imageUrl });
       
       toast.loading('Creating campaign...', { id: 'create-campaign' });
+      const tx = await crowdfundingContract.createCampaign(
+        goalWei,
+        durationSeconds,
+        metadata
+      );
+      
       await tx.wait();
       toast.success('Campaign created successfully!', { id: 'create-campaign' });
       
@@ -226,7 +248,7 @@ export const useCrowdfunding = () => {
 
     try {
       toast.loading('Claiming refund...', { id: 'refund' });
-      const tx = await crowdfundingContract.claimRefund(campaignId);
+      const tx = await crowdfundingContract.refund(campaignId);
       await tx.wait();
       
       toast.success('Refund claimed successfully!', { id: 'refund' });
