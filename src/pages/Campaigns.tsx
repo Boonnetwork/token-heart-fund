@@ -1,12 +1,14 @@
 import React, { useState, useMemo } from 'react';
 import { Layout } from '@/components/Layout';
 import { CampaignCard, Campaign } from '@/components/CampaignCard';
+import { CampaignCardSkeleton } from '@/components/CampaignCardSkeleton';
+import { BackToTop } from '@/components/BackToTop';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useCrowdfunding } from '@/hooks/useCrowdfunding';
 import { useContracts } from '@/contexts/ContractContext';
-import { Search, Filter, Loader2, AlertCircle, Rocket, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Search, Filter, AlertCircle, Rocket, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 type StatusFilter = 'all' | 'active' | 'completed' | 'failed' | 'cancelled';
@@ -151,8 +153,10 @@ const Campaigns = () => {
 
         {/* Results */}
         {isLoading ? (
-          <div className="flex items-center justify-center py-20">
-            <Loader2 className="w-10 h-10 text-primary animate-spin" />
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {Array.from({ length: 6 }).map((_, i) => (
+              <CampaignCardSkeleton key={i} />
+            ))}
           </div>
         ) : filteredAndSortedCampaigns.length === 0 ? (
           <div className="text-center py-20">
@@ -219,6 +223,7 @@ const Campaigns = () => {
           </>
         )}
       </div>
+      <BackToTop />
     </Layout>
   );
 };

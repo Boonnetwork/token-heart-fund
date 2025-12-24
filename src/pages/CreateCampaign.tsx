@@ -96,7 +96,7 @@ const CreateCampaign = () => {
 
     setIsSubmitting(true);
     
-    const success = await createCampaign(
+    const campaignId = await createCampaign(
       sanitizedData.title,
       sanitizedData.fullDescription,
       sanitizedData.imageUrl || 'https://images.unsplash.com/photo-1639762681485-074b7f938ba0?w=800',
@@ -104,8 +104,9 @@ const CreateCampaign = () => {
       parseInt(sanitizedData.durationDays)
     );
 
-    if (success) {
-      navigate('/campaigns');
+    if (campaignId) {
+      // Redirect to the newly created campaign
+      navigate(`/campaign/${campaignId}`);
     }
     
     setIsSubmitting(false);

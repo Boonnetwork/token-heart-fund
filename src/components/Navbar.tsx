@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Menu, X, Rocket, LayoutDashboard, PlusCircle, Home } from 'lucide-react';
+import { Menu, X, Rocket, LayoutDashboard, PlusCircle, Home, Settings } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { WalletButton } from '@/components/WalletButton';
 import { cn } from '@/lib/utils';
@@ -10,6 +10,7 @@ const navLinks = [
   { href: '/campaigns', label: 'Campaigns', icon: Rocket },
   { href: '/create', label: 'Create', icon: PlusCircle },
   { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
+  { href: '/settings', label: 'Settings', icon: Settings },
 ];
 
 export const Navbar: React.FC = () => {
@@ -53,11 +54,9 @@ export const Navbar: React.FC = () => {
             })}
           </div>
 
-          {/* Wallet Button */}
+          {/* Wallet Button - Always visible */}
           <div className="flex items-center gap-3">
-            <div className="hidden sm:block">
-              <WalletButton />
-            </div>
+            <WalletButton />
             
             {/* Mobile Menu Button */}
             <Button
@@ -95,9 +94,6 @@ export const Navbar: React.FC = () => {
                   </Link>
                 );
               })}
-              <div className="pt-2 sm:hidden">
-                <WalletButton />
-              </div>
             </div>
           </div>
         )}

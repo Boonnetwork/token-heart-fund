@@ -1,6 +1,14 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Rocket, Twitter, Github, MessageCircle, ExternalLink } from 'lucide-react';
+import { Rocket, Twitter, Github, MessageCircle, ExternalLink, Send } from 'lucide-react';
+
+// Social links - can be customized
+const SOCIAL_LINKS = {
+  twitter: 'https://twitter.com/crowdchain',
+  github: 'https://github.com/crowdchain',
+  telegram: 'https://t.me/crowdchain',
+  discord: 'https://discord.gg/crowdchain',
+};
 
 export const Footer: React.FC = () => {
   return (
@@ -22,13 +30,40 @@ export const Footer: React.FC = () => {
               transparency, security, and trust built on BNB Smart Chain.
             </p>
             <div className="flex gap-4">
-              <a href="#" className="text-muted-foreground hover:text-primary transition-colors">
+              <a 
+                href={SOCIAL_LINKS.twitter} 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="text-muted-foreground hover:text-primary transition-colors"
+                title="Follow us on Twitter"
+              >
                 <Twitter className="w-5 h-5" />
               </a>
-              <a href="#" className="text-muted-foreground hover:text-primary transition-colors">
+              <a 
+                href={SOCIAL_LINKS.github} 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="text-muted-foreground hover:text-primary transition-colors"
+                title="View on GitHub"
+              >
                 <Github className="w-5 h-5" />
               </a>
-              <a href="#" className="text-muted-foreground hover:text-primary transition-colors">
+              <a 
+                href={SOCIAL_LINKS.telegram} 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="text-muted-foreground hover:text-primary transition-colors"
+                title="Join our Telegram"
+              >
+                <Send className="w-5 h-5" />
+              </a>
+              <a 
+                href={SOCIAL_LINKS.discord} 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="text-muted-foreground hover:text-primary transition-colors"
+                title="Join our Discord"
+              >
                 <MessageCircle className="w-5 h-5" />
               </a>
             </div>
@@ -88,13 +123,25 @@ export const Footer: React.FC = () => {
                 </a>
               </li>
               <li>
-                <a href="#" className="text-muted-foreground hover:text-primary transition-colors">
+                <a 
+                  href={SOCIAL_LINKS.github}
+                  target="_blank"
+                  rel="noopener noreferrer" 
+                  className="text-muted-foreground hover:text-primary transition-colors flex items-center gap-1"
+                >
                   Documentation
+                  <ExternalLink className="w-3 h-3" />
                 </a>
               </li>
               <li>
-                <a href="#" className="text-muted-foreground hover:text-primary transition-colors">
+                <a 
+                  href="https://testnet.bscscan.com"
+                  target="_blank"
+                  rel="noopener noreferrer" 
+                  className="text-muted-foreground hover:text-primary transition-colors flex items-center gap-1"
+                >
                   Smart Contracts
+                  <ExternalLink className="w-3 h-3" />
                 </a>
               </li>
             </ul>
@@ -103,7 +150,7 @@ export const Footer: React.FC = () => {
 
         <div className="border-t border-border/50 mt-8 pt-8 flex flex-col sm:flex-row justify-between items-center gap-4">
           <p className="text-muted-foreground text-sm">
-            © 2024 CrowdChain. All rights reserved.
+            © {new Date().getFullYear()} CrowdChain. All rights reserved.
           </p>
           <p className="text-muted-foreground text-sm flex items-center gap-2">
             <span className="w-2 h-2 rounded-full bg-emerald animate-pulse" />
