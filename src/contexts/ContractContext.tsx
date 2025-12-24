@@ -20,6 +20,7 @@ interface ContractContextType {
   isLoading: boolean;
   approveTokens: (amount: string) => Promise<boolean>;
   getAllowance: () => Promise<string>;
+  refreshTokenBalance: () => Promise<void>;
 }
 
 // ERC20 Token ABI (standard functions)
@@ -117,6 +118,16 @@ export const ContractProvider: React.FC<{ children: ReactNode }> = ({ children }
     localStorage.setItem("contractSettings", JSON.stringify(newSettings));
   };
 
+  const refreshTokenBalance = async () => {
+    if (!tokenContract || !address) return;
+    try {
+      const balance = await tokenContract.balanceOf(address);
+      setTokenBalance(ethers.utils.formatUnits(balance, tokenDecimals));
+    } catch (error) {
+      console.error("Error refreshing token balance:", error);
+    }
+  };
+
   const approveTokens = async (amount: string): Promise<boolean> => {
     if (!tokenContract || !settings.crowdfundingAddress) return false;
 
@@ -156,6 +167,7 @@ export const ContractProvider: React.FC<{ children: ReactNode }> = ({ children }
         isLoading,
         approveTokens,
         getAllowance,
+        refreshTokenBalance,
       }}
     >
       {children}

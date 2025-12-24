@@ -6,11 +6,13 @@ import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useCrowdfunding } from '@/hooks/useCrowdfunding';
 import { useContracts } from '@/contexts/ContractContext';
-import { Search, Filter, Loader2, AlertCircle, Rocket } from 'lucide-react';
+import { Search, Filter, Loader2, AlertCircle, Rocket, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 type StatusFilter = 'all' | 'active' | 'completed' | 'failed' | 'cancelled';
 type SortOption = 'newest' | 'ending-soon' | 'most-funded' | 'most-backers';
+
+const ITEMS_PER_PAGE = 9;
 
 const Campaigns = () => {
   const { campaigns, isLoading, tokenSymbol } = useCrowdfunding();
@@ -18,6 +20,7 @@ const Campaigns = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
   const [sortOption, setSortOption] = useState<SortOption>('newest');
+  const [currentPage, setCurrentPage] = useState(1);
 
   const filteredAndSortedCampaigns = useMemo(() => {
     let result = campaigns.map(c => ({
@@ -30,7 +33,7 @@ const Campaigns = () => {
       deadline: c.deadline,
       creatorAddress: c.creator,
       donorsCount: c.donorCount,
-      status: c.status === 'cancelled' ? 'failed' : c.status,
+      status: c.status,
       tokenSymbol: tokenSymbol,
     } as Campaign));
 
@@ -66,6 +69,18 @@ const Campaigns = () => {
 
     return result;
   }, [campaigns, searchQuery, statusFilter, sortOption, tokenSymbol]);
+
+  // Pagination
+  const totalPages = Math.ceil(filteredAndSortedCampaigns.length / ITEMS_PER_PAGE);
+  const paginatedCampaigns = useMemo(() => {
+    const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+    return filteredAndSortedCampaigns.slice(startIndex, startIndex + ITEMS_PER_PAGE);
+  }, [filteredAndSortedCampaigns, currentPage]);
+
+  // Reset page when filters change
+  React.useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery, statusFilter, sortOption]);
 
   if (!crowdfundingContract) {
     return (
@@ -118,6 +133,7 @@ const Campaigns = () => {
               <SelectItem value="active">Active</SelectItem>
               <SelectItem value="completed">Completed</SelectItem>
               <SelectItem value="failed">Failed</SelectItem>
+              <SelectItem value="cancelled">Cancelled</SelectItem>
             </SelectContent>
           </Select>
           <Select value={sortOption} onValueChange={(v) => setSortOption(v as SortOption)}>
@@ -158,13 +174,48 @@ const Campaigns = () => {
         ) : (
           <>
             <p className="text-sm text-muted-foreground mb-4">
-              Showing {filteredAndSortedCampaigns.length} campaign{filteredAndSortedCampaigns.length !== 1 ? 's' : ''}
+              Showing {paginatedCampaigns.length} of {filteredAndSortedCampaigns.length} campaign{filteredAndSortedCampaigns.length !== 1 ? 's' : ''}
             </p>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {filteredAndSortedCampaigns.map((campaign) => (
+              {paginatedCampaigns.map((campaign) => (
                 <CampaignCard key={campaign.id} campaign={campaign} />
               ))}
             </div>
+            
+            {/* Pagination */}
+            {totalPages > 1 && (
+              <div className="flex items-center justify-center gap-2 mt-8">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                  disabled={currentPage === 1}
+                >
+                  <ChevronLeft className="w-4 h-4" />
+                </Button>
+                <div className="flex items-center gap-1">
+                  {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                    <Button
+                      key={page}
+                      variant={currentPage === page ? 'default' : 'outline'}
+                      size="sm"
+                      onClick={() => setCurrentPage(page)}
+                      className="w-8 h-8 p-0"
+                    >
+                      {page}
+                    </Button>
+                  ))}
+                </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                  disabled={currentPage === totalPages}
+                >
+                  <ChevronRight className="w-4 h-4" />
+                </Button>
+              </div>
+            )}
           </>
         )}
       </div>

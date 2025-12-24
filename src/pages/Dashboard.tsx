@@ -7,17 +7,30 @@ import { useWallet } from '@/contexts/WalletContext';
 import { useContracts } from '@/contexts/ContractContext';
 import { useCrowdfunding, CampaignData } from '@/hooks/useCrowdfunding';
 import { CampaignCard, Campaign } from '@/components/CampaignCard';
-import { Wallet, Coins, Rocket, TrendingUp, Plus, Loader2, Heart, AlertCircle } from 'lucide-react';
+import { Wallet, Coins, Rocket, TrendingUp, Plus, Loader2, Heart, AlertCircle, XCircle } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 const Dashboard = () => {
   const { isConnected, address } = useWallet();
   const { tokenBalance, tokenSymbol, crowdfundingContract } = useContracts();
-  const { campaigns, getMyCampaigns, getMyDonations, isLoading } = useCrowdfunding();
+  const { campaigns, getMyCampaigns, getMyDonations, cancelCampaign, getDonorContribution, isLoading } = useCrowdfunding();
   
   const [myCampaignIds, setMyCampaignIds] = useState<number[]>([]);
   const [myDonationIds, setMyDonationIds] = useState<number[]>([]);
+  const [totalDonated, setTotalDonated] = useState(0);
   const [loadingStats, setLoadingStats] = useState(true);
+  const [cancellingId, setCancellingId] = useState<number | null>(null);
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -31,17 +44,30 @@ const Dashboard = () => {
       
       setMyCampaignIds(campaignIds);
       setMyDonationIds(donationIds);
+
+      // Calculate total donated
+      let total = 0;
+      for (const id of donationIds) {
+        const contribution = await getDonorContribution(id, address);
+        total += parseFloat(contribution);
+      }
+      setTotalDonated(total);
+      
       setLoadingStats(false);
     };
 
     fetchUserData();
-  }, [crowdfundingContract, address, getMyCampaigns, getMyDonations]);
+  }, [crowdfundingContract, address, getMyCampaigns, getMyDonations, getDonorContribution]);
 
   const myCampaigns = campaigns.filter(c => myCampaignIds.includes(c.id));
   const myDonatedCampaigns = campaigns.filter(c => myDonationIds.includes(c.id));
-
   const totalRaised = myCampaigns.reduce((sum, c) => sum + parseFloat(c.raisedAmount), 0);
-  const totalDonated = myDonatedCampaigns.length; // Simplified - would need to track actual amounts
+
+  const handleCancelCampaign = async (campaignId: number) => {
+    setCancellingId(campaignId);
+    await cancelCampaign(campaignId);
+    setCancellingId(null);
+  };
 
   const mapToCampaignCard = (c: CampaignData): Campaign => ({
     id: c.id.toString(),
@@ -53,7 +79,7 @@ const Dashboard = () => {
     deadline: c.deadline,
     creatorAddress: c.creator,
     donorsCount: c.donorCount,
-    status: c.status === 'cancelled' ? 'failed' : c.status,
+    status: c.status,
     tokenSymbol: tokenSymbol,
   });
 
@@ -75,9 +101,7 @@ const Dashboard = () => {
         <div className="container mx-auto px-4 py-20 text-center">
           <AlertCircle className="w-16 h-16 text-muted-foreground mx-auto mb-6" />
           <h1 className="font-display text-2xl font-bold text-foreground mb-4">Contracts Not Configured</h1>
-          <p className="text-muted-foreground mb-6">
-            Please configure the smart contract addresses in the settings page.
-          </p>
+          <p className="text-muted-foreground mb-6">Please configure the smart contract addresses in the settings page.</p>
           <Button variant="gradient" asChild>
             <Link to="/settings">Go to Settings</Link>
           </Button>
@@ -139,18 +163,18 @@ const Dashboard = () => {
 
           <Card className="glass-card">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">Campaigns Backed</CardTitle>
+              <CardTitle className="text-sm font-medium text-muted-foreground">Total Donated</CardTitle>
               <Heart className="w-4 h-4 text-primary" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-foreground">
-                {loadingStats ? <Loader2 className="w-5 h-5 animate-spin" /> : myDonatedCampaigns.length}
+                {loadingStats ? <Loader2 className="w-5 h-5 animate-spin" /> : `${totalDonated.toLocaleString()} ${tokenSymbol}`}
               </div>
             </CardContent>
           </Card>
         </div>
 
-        {/* Tabs for My Campaigns & Donations */}
+        {/* Tabs */}
         <Tabs defaultValue="my-campaigns" className="space-y-6">
           <TabsList className="bg-muted/50">
             <TabsTrigger value="my-campaigns">My Campaigns</TabsTrigger>
@@ -175,7 +199,41 @@ const Dashboard = () => {
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {myCampaigns.map(campaign => (
-                  <CampaignCard key={campaign.id} campaign={mapToCampaignCard(campaign)} />
+                  <div key={campaign.id} className="relative">
+                    <CampaignCard campaign={mapToCampaignCard(campaign)} />
+                    {campaign.status === 'active' && (
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                          <Button 
+                            variant="destructive" 
+                            size="sm" 
+                            className="absolute top-2 left-2 z-10"
+                            disabled={cancellingId === campaign.id}
+                          >
+                            {cancellingId === campaign.id ? (
+                              <Loader2 className="w-4 h-4 animate-spin" />
+                            ) : (
+                              <><XCircle className="w-4 h-4 mr-1" />Cancel</>
+                            )}
+                          </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>Cancel Campaign?</AlertDialogTitle>
+                            <AlertDialogDescription>
+                              This action cannot be undone. All donors will be able to claim refunds.
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel>Keep Campaign</AlertDialogCancel>
+                            <AlertDialogAction onClick={() => handleCancelCampaign(campaign.id)}>
+                              Yes, Cancel Campaign
+                            </AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
+                    )}
+                  </div>
                 ))}
               </div>
             )}

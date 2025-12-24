@@ -9,8 +9,9 @@ import { Card, CardContent } from '@/components/ui/card';
 import { useWallet } from '@/contexts/WalletContext';
 import { useContracts } from '@/contexts/ContractContext';
 import { useCrowdfunding } from '@/hooks/useCrowdfunding';
-import { Rocket, Upload, Wallet, Image, AlertCircle, Loader2 } from 'lucide-react';
+import { Rocket, Wallet, Image, AlertCircle, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
+import { campaignSchema, sanitizeText } from '@/lib/validation';
 
 const CreateCampaign = () => {
   const navigate = useNavigate();
@@ -20,6 +21,7 @@ const CreateCampaign = () => {
   
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [imagePreview, setImagePreview] = useState<string>('');
+  const [errors, setErrors] = useState<Record<string, string>>({});
   const [formData, setFormData] = useState({
     title: '',
     shortDescription: '',
@@ -31,11 +33,32 @@ const CreateCampaign = () => {
 
   const handleImageUrlChange = (url: string) => {
     setFormData({ ...formData, imageUrl: url });
-    setImagePreview(url);
+    // Validate URL format
+    if (url) {
+      try {
+        const parsed = new URL(url);
+        if (['http:', 'https:', 'ipfs:'].includes(parsed.protocol)) {
+          setImagePreview(url);
+          setErrors(prev => ({ ...prev, imageUrl: '' }));
+        } else {
+          setImagePreview('');
+          setErrors(prev => ({ ...prev, imageUrl: 'Only HTTP, HTTPS, or IPFS URLs are allowed' }));
+        }
+      } catch {
+        setImagePreview('');
+        if (url.length > 5) {
+          setErrors(prev => ({ ...prev, imageUrl: 'Invalid URL format' }));
+        }
+      }
+    } else {
+      setImagePreview('');
+      setErrors(prev => ({ ...prev, imageUrl: '' }));
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setErrors({});
     
     if (!isConnected) {
       toast.error('Please connect your wallet first');
@@ -47,38 +70,38 @@ const CreateCampaign = () => {
       return;
     }
 
-    // Validation
-    if (!formData.title || formData.title.length > 100) {
-      toast.error('Title is required (max 100 characters)');
-      return;
-    }
+    // Sanitize inputs
+    const sanitizedData = {
+      title: sanitizeText(formData.title),
+      shortDescription: sanitizeText(formData.shortDescription),
+      fullDescription: sanitizeText(formData.fullDescription || formData.shortDescription),
+      goalAmount: formData.goalAmount,
+      durationDays: formData.durationDays,
+      imageUrl: formData.imageUrl,
+    };
 
-    const fullDescription = formData.fullDescription || formData.shortDescription;
-    if (!fullDescription || fullDescription.length > 5000) {
-      toast.error('Description is required (max 5000 characters)');
-      return;
-    }
-
-    const goalAmount = parseFloat(formData.goalAmount);
-    if (isNaN(goalAmount) || goalAmount <= 0) {
-      toast.error('Please enter a valid goal amount');
-      return;
-    }
-
-    const durationDays = parseInt(formData.durationDays);
-    if (isNaN(durationDays) || durationDays < 1 || durationDays > 365) {
-      toast.error('Duration must be between 1 and 365 days');
+    // Validate with Zod
+    const result = campaignSchema.safeParse(sanitizedData);
+    
+    if (!result.success) {
+      const fieldErrors: Record<string, string> = {};
+      result.error.errors.forEach((err) => {
+        const field = err.path[0] as string;
+        fieldErrors[field] = err.message;
+      });
+      setErrors(fieldErrors);
+      toast.error('Please fix the validation errors');
       return;
     }
 
     setIsSubmitting(true);
     
     const success = await createCampaign(
-      formData.title,
-      fullDescription,
-      formData.imageUrl || 'https://images.unsplash.com/photo-1639762681485-074b7f938ba0?w=800',
-      formData.goalAmount,
-      durationDays
+      sanitizedData.title,
+      sanitizedData.fullDescription,
+      sanitizedData.imageUrl || 'https://images.unsplash.com/photo-1639762681485-074b7f938ba0?w=800',
+      sanitizedData.goalAmount,
+      parseInt(sanitizedData.durationDays)
     );
 
     if (success) {
@@ -137,9 +160,13 @@ const CreateCampaign = () => {
                   value={formData.title} 
                   onChange={(e) => setFormData({ ...formData, title: e.target.value })}
                   maxLength={100}
+                  className={errors.title ? 'border-destructive' : ''}
                   required 
                 />
-                <p className="text-xs text-muted-foreground">{formData.title.length}/100</p>
+                <div className="flex justify-between">
+                  {errors.title && <p className="text-destructive text-xs">{errors.title}</p>}
+                  <p className="text-xs text-muted-foreground ml-auto">{formData.title.length}/100</p>
+                </div>
               </div>
 
               {/* Short Description */}
@@ -151,7 +178,9 @@ const CreateCampaign = () => {
                   value={formData.shortDescription} 
                   onChange={(e) => setFormData({ ...formData, shortDescription: e.target.value })}
                   maxLength={150}
+                  className={errors.shortDescription ? 'border-destructive' : ''}
                 />
+                {errors.shortDescription && <p className="text-destructive text-xs">{errors.shortDescription}</p>}
               </div>
 
               {/* Full Description */}
@@ -164,9 +193,13 @@ const CreateCampaign = () => {
                   value={formData.fullDescription} 
                   onChange={(e) => setFormData({ ...formData, fullDescription: e.target.value })}
                   maxLength={5000}
+                  className={errors.fullDescription ? 'border-destructive' : ''}
                   required 
                 />
-                <p className="text-xs text-muted-foreground">{formData.fullDescription.length}/5000</p>
+                <div className="flex justify-between">
+                  {errors.fullDescription && <p className="text-destructive text-xs">{errors.fullDescription}</p>}
+                  <p className="text-xs text-muted-foreground ml-auto">{formData.fullDescription.length}/5000</p>
+                </div>
               </div>
 
               {/* Goal & Duration */}
@@ -180,8 +213,11 @@ const CreateCampaign = () => {
                     value={formData.goalAmount} 
                     onChange={(e) => setFormData({ ...formData, goalAmount: e.target.value })}
                     min="1"
+                    step="any"
+                    className={errors.goalAmount ? 'border-destructive' : ''}
                     required 
                   />
+                  {errors.goalAmount && <p className="text-destructive text-xs">{errors.goalAmount}</p>}
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="duration">Duration (Days) *</Label>
@@ -193,8 +229,10 @@ const CreateCampaign = () => {
                     onChange={(e) => setFormData({ ...formData, durationDays: e.target.value })}
                     min="1"
                     max="365"
+                    className={errors.durationDays ? 'border-destructive' : ''}
                     required 
                   />
+                  {errors.durationDays && <p className="text-destructive text-xs">{errors.durationDays}</p>}
                 </div>
               </div>
 
@@ -208,7 +246,9 @@ const CreateCampaign = () => {
                     placeholder="https://... (image URL or IPFS link)" 
                     value={formData.imageUrl}
                     onChange={(e) => handleImageUrlChange(e.target.value)}
+                    className={errors.imageUrl ? 'border-destructive' : ''}
                   />
+                  {errors.imageUrl && <p className="text-destructive text-xs">{errors.imageUrl}</p>}
                   
                   {/* Image Preview */}
                   {imagePreview ? (
@@ -217,7 +257,10 @@ const CreateCampaign = () => {
                         src={imagePreview} 
                         alt="Campaign preview"
                         className="w-full h-full object-cover"
-                        onError={() => setImagePreview('')}
+                        onError={() => {
+                          setImagePreview('');
+                          setErrors(prev => ({ ...prev, imageUrl: 'Failed to load image' }));
+                        }}
                       />
                       <Button 
                         type="button"
@@ -227,6 +270,7 @@ const CreateCampaign = () => {
                         onClick={() => {
                           setFormData({ ...formData, imageUrl: '' });
                           setImagePreview('');
+                          setErrors(prev => ({ ...prev, imageUrl: '' }));
                         }}
                       >
                         Remove
