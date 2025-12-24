@@ -91,11 +91,8 @@ const Campaigns = () => {
           <AlertCircle className="w-16 h-16 text-muted-foreground mx-auto mb-6" />
           <h1 className="font-display text-2xl font-bold text-foreground mb-4">Contracts Not Configured</h1>
           <p className="text-muted-foreground mb-6">
-            Please configure the smart contract addresses in the settings page to view campaigns.
+            Please connect your wallet to view campaigns.
           </p>
-          <Button variant="gradient" asChild>
-            <Link to="/settings">Go to Settings</Link>
-          </Button>
         </div>
       </Layout>
     );
