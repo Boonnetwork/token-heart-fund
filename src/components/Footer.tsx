@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { forwardRef } from 'react';
 import { Link } from 'react-router-dom';
 import { Rocket, Twitter, Github, MessageCircle, ExternalLink, Send } from 'lucide-react';
 
@@ -10,9 +10,9 @@ const SOCIAL_LINKS = {
   discord: 'https://discord.gg/crowdchain',
 };
 
-export const Footer: React.FC = () => {
+export const Footer = forwardRef<HTMLElement>((_, ref) => {
   return (
-    <footer className="bg-card/50 border-t border-border/50 mt-auto">
+    <footer ref={ref} className="bg-card/50 border-t border-border/50 mt-auto">
       <div className="container mx-auto px-4 py-12">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           {/* Brand */}
@@ -88,11 +88,6 @@ export const Footer: React.FC = () => {
                   Dashboard
                 </Link>
               </li>
-              <li>
-                <Link to="/settings" className="text-muted-foreground hover:text-primary transition-colors">
-                  Settings
-                </Link>
-              </li>
             </ul>
           </div>
 
@@ -160,4 +155,6 @@ export const Footer: React.FC = () => {
       </div>
     </footer>
   );
-};
+});
+
+Footer.displayName = 'Footer';
