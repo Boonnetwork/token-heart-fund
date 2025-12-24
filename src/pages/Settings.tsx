@@ -9,12 +9,11 @@ import { useContracts } from "@/contexts/ContractContext";
 import { Save, AlertTriangle, Lock, ShieldCheck, Eye, EyeOff } from "lucide-react";
 import { toast } from "sonner";
 
-// Environment variable or hashed password would be better
-// For demo purposes, we use a simple check
+// Admin password from environment variable with fallback
+const ADMIN_PASSWORD = (import.meta as any).env?.VITE_ADMIN_PASSWORD || 'admin_crowdfund_2024';
+
 const validateAdminAccess = (password: string): boolean => {
-  // In production, this should be a server-side check or use environment variables
-  const ADMIN_HASH = btoa('admin_crowdfund_2024'); // Base64 encoded
-  return btoa(password) === ADMIN_HASH;
+  return password === ADMIN_PASSWORD;
 };
 
 const Settings = () => {
@@ -136,6 +135,7 @@ const Settings = () => {
             <p className="text-foreground font-medium">Important</p>
             <p className="text-muted-foreground text-sm">
               These settings are stored locally. Make sure to enter valid contract addresses and ABIs for BSC Testnet.
+              Set VITE_ADMIN_PASSWORD environment variable to change the admin password.
             </p>
           </div>
         </div>

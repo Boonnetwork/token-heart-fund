@@ -7,9 +7,11 @@ import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
+import { Skeleton } from '@/components/ui/skeleton';
 import { useWallet } from '@/contexts/WalletContext';
 import { useContracts } from '@/contexts/ContractContext';
 import { useCrowdfunding, CampaignData, DonationData } from '@/hooks/useCrowdfunding';
+import { ShareButtons } from '@/components/ShareButtons';
 import { 
   ArrowLeft, 
   Clock, 
@@ -22,16 +24,26 @@ import {
   CheckCircle,
   XCircle,
   Loader2,
-  Copy
+  Copy,
+  ImageOff
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
+
+// Dynamic quick-select amounts based on goal
+const getQuickSelectAmounts = (goalAmount: number): number[] => {
+  if (goalAmount >= 100000) return [1000, 5000, 10000];
+  if (goalAmount >= 10000) return [100, 500, 1000];
+  if (goalAmount >= 1000) return [50, 100, 500];
+  if (goalAmount >= 100) return [10, 25, 50];
+  return [1, 5, 10];
+};
 
 const CampaignDetail = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { isConnected, address } = useWallet();
-  const { tokenBalance, tokenSymbol, crowdfundingContract } = useContracts();
+  const { tokenBalance, tokenSymbol, crowdfundingContract, refreshTokenBalance } = useContracts();
   const { getCampaign, getCampaignDonations, getDonorContribution, donate, claimFunds, claimRefund } = useCrowdfunding();
   
   const [campaign, setCampaign] = useState<CampaignData | null>(null);
@@ -40,21 +52,38 @@ const CampaignDetail = () => {
   const [donateAmount, setDonateAmount] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [imageError, setImageError] = useState(false);
+  const [notFound, setNotFound] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
       if (!id) return;
       
       setIsLoading(true);
+      setNotFound(false);
       const campaignId = parseInt(id);
+      
+      // Validate campaign ID is a valid number
+      if (isNaN(campaignId) || campaignId < 1) {
+        setNotFound(true);
+        setIsLoading(false);
+        return;
+      }
       
       const [campaignData, donationsData] = await Promise.all([
         getCampaign(campaignId),
         getCampaignDonations(campaignId),
       ]);
       
+      if (!campaignData) {
+        setNotFound(true);
+        setIsLoading(false);
+        return;
+      }
+      
       setCampaign(campaignData);
       setDonations(donationsData);
+      setImageError(false);
       
       if (address && campaignData) {
         const contribution = await getDonorContribution(campaignId, address);
@@ -66,6 +95,9 @@ const CampaignDetail = () => {
 
     if (crowdfundingContract) {
       fetchData();
+    } else if (id) {
+      // Contract not configured but we have an ID
+      setIsLoading(false);
     }
   }, [id, address, crowdfundingContract, getCampaign, getCampaignDonations, getDonorContribution]);
 
@@ -95,6 +127,7 @@ const CampaignDetail = () => {
         const contribution = await getDonorContribution(campaign.id, address);
         setMyContribution(contribution);
       }
+      // Token balance is now refreshed in the donate function
     }
     setIsProcessing(false);
   };
@@ -121,7 +154,6 @@ const CampaignDetail = () => {
     setIsProcessing(false);
   };
 
-
   const copyAddress = (addr: string) => {
     navigator.clipboard.writeText(addr);
     toast.success('Address copied!');
@@ -129,27 +161,72 @@ const CampaignDetail = () => {
 
   const formatAddress = (addr: string) => `${addr.slice(0, 6)}...${addr.slice(-4)}`;
 
+  // Loading skeleton
   if (isLoading) {
     return (
       <Layout>
-        <div className="container mx-auto px-4 py-20 text-center">
-          <Loader2 className="w-12 h-12 text-primary mx-auto animate-spin" />
-          <p className="text-muted-foreground mt-4">Loading campaign...</p>
+        <div className="container mx-auto px-4 py-8">
+          <Skeleton className="h-10 w-40 mb-6" />
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <div className="lg:col-span-2 space-y-6">
+              <Skeleton className="aspect-video w-full rounded-2xl" />
+              <div>
+                <Skeleton className="h-10 w-3/4 mb-3" />
+                <Skeleton className="h-5 w-1/2" />
+              </div>
+              <Card className="glass-card">
+                <CardHeader>
+                  <Skeleton className="h-6 w-1/3" />
+                </CardHeader>
+                <CardContent className="space-y-2">
+                  <Skeleton className="h-4 w-full" />
+                  <Skeleton className="h-4 w-full" />
+                  <Skeleton className="h-4 w-2/3" />
+                </CardContent>
+              </Card>
+            </div>
+            <div>
+              <Card className="glass-card">
+                <CardContent className="pt-6 space-y-4">
+                  <Skeleton className="h-10 w-1/2" />
+                  <Skeleton className="h-4 w-2/3" />
+                  <Skeleton className="h-3 w-full" />
+                  <div className="grid grid-cols-2 gap-4">
+                    <Skeleton className="h-20" />
+                    <Skeleton className="h-20" />
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          </div>
         </div>
       </Layout>
     );
   }
 
-  if (!campaign) {
+  // Not found state (404)
+  if (notFound || !campaign) {
     return (
       <Layout>
         <div className="container mx-auto px-4 py-20 text-center">
           <AlertTriangle className="w-16 h-16 text-destructive mx-auto mb-4" />
           <h1 className="font-display text-2xl font-bold text-foreground mb-2">Campaign Not Found</h1>
-          <p className="text-muted-foreground mb-6">This campaign doesn't exist or contracts are not configured.</p>
-          <Button variant="outline" asChild>
-            <Link to="/campaigns"><ArrowLeft className="w-4 h-4 mr-2" />Back to Campaigns</Link>
-          </Button>
+          <p className="text-muted-foreground mb-6">
+            {notFound 
+              ? `Campaign #${id} doesn't exist or has been removed.`
+              : 'Please configure the contracts in settings to view campaigns.'
+            }
+          </p>
+          <div className="flex gap-4 justify-center">
+            <Button variant="outline" asChild>
+              <Link to="/campaigns"><ArrowLeft className="w-4 h-4 mr-2" />Browse Campaigns</Link>
+            </Button>
+            {!crowdfundingContract && (
+              <Button variant="gradient" asChild>
+                <Link to="/settings">Go to Settings</Link>
+              </Button>
+            )}
+          </div>
         </div>
       </Layout>
     );
@@ -162,7 +239,7 @@ const CampaignDetail = () => {
   const canClaimFunds = isCreator && isEnded && campaign.status === 'completed' && !campaign.claimed;
   const canClaimRefund = parseFloat(myContribution) > 0 && isEnded && campaign.status === 'failed';
   const canDonate = campaign.status === 'active' && !isEnded;
-  
+  const quickSelectAmounts = getQuickSelectAmounts(parseFloat(campaign.goalAmount));
 
   const statusConfig = {
     active: { label: 'Active', icon: Clock, className: 'bg-emerald/20 text-emerald border-emerald/30' },
@@ -172,6 +249,7 @@ const CampaignDetail = () => {
   };
 
   const StatusIcon = statusConfig[campaign.status].icon;
+  const fallbackImage = 'https://images.unsplash.com/photo-1639762681485-074b7f938ba0?w=800';
 
   return (
     <Layout>
@@ -185,12 +263,20 @@ const CampaignDetail = () => {
           {/* Main Content */}
           <div className="lg:col-span-2 space-y-6">
             {/* Image */}
-            <div className="relative rounded-2xl overflow-hidden aspect-video">
-              <img 
-                src={campaign.imageUrl} 
-                alt={campaign.title}
-                className="w-full h-full object-cover"
-              />
+            <div className="relative rounded-2xl overflow-hidden aspect-video bg-muted">
+              {imageError ? (
+                <div className="w-full h-full flex flex-col items-center justify-center text-muted-foreground">
+                  <ImageOff className="w-12 h-12 mb-2" />
+                  <span className="text-sm">Image not available</span>
+                </div>
+              ) : (
+                <img 
+                  src={campaign.imageUrl || fallbackImage} 
+                  alt={campaign.title}
+                  className="w-full h-full object-cover"
+                  onError={() => setImageError(true)}
+                />
+              )}
               <Badge 
                 variant="outline" 
                 className={cn("absolute top-4 right-4 text-sm", statusConfig[campaign.status].className)}
@@ -205,23 +291,26 @@ const CampaignDetail = () => {
               <h1 className="font-display text-3xl md:text-4xl font-bold text-foreground mb-3">
                 {campaign.title}
               </h1>
-              <div className="flex items-center gap-2 text-muted-foreground">
-                <span>Created by</span>
-                <button 
-                  onClick={() => copyAddress(campaign.creator)}
-                  className="font-mono text-primary hover:underline flex items-center gap-1"
-                >
-                  {formatAddress(campaign.creator)}
-                  <Copy className="w-3 h-3" />
-                </button>
-                <a 
-                  href={`https://testnet.bscscan.com/address/${campaign.creator}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-muted-foreground hover:text-primary"
-                >
-                  <ExternalLink className="w-4 h-4" />
-                </a>
+              <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
+                <div className="flex items-center gap-2 text-muted-foreground">
+                  <span>Created by</span>
+                  <button 
+                    onClick={() => copyAddress(campaign.creator)}
+                    className="font-mono text-primary hover:underline flex items-center gap-1"
+                  >
+                    {formatAddress(campaign.creator)}
+                    <Copy className="w-3 h-3" />
+                  </button>
+                  <a 
+                    href={`https://testnet.bscscan.com/address/${campaign.creator}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-muted-foreground hover:text-primary"
+                  >
+                    <ExternalLink className="w-4 h-4" />
+                  </a>
+                </div>
+                <ShareButtons title={campaign.title} />
               </div>
             </div>
 
@@ -327,7 +416,7 @@ const CampaignDetail = () => {
                           <span className="flex items-center text-muted-foreground text-sm">{tokenSymbol}</span>
                         </div>
                         <div className="flex gap-2">
-                          {[100, 500, 1000].map((amount) => (
+                          {quickSelectAmounts.map((amount) => (
                             <Button 
                               key={amount}
                               variant="outline" 
@@ -335,7 +424,7 @@ const CampaignDetail = () => {
                               className="flex-1"
                               onClick={() => setDonateAmount(amount.toString())}
                             >
-                              {amount}
+                              {amount.toLocaleString()}
                             </Button>
                           ))}
                         </div>
