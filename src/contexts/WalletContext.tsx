@@ -1,15 +1,15 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode, useCallback } from 'react';
 import { ethers } from 'ethers';
-import { 
-  useWeb3ModalProvider, 
-  useWeb3ModalAccount, 
-  useDisconnect, 
+import {
+  useWeb3ModalProvider,
+  useWeb3ModalAccount,
+  useDisconnect,
   useSwitchNetwork,
-  useWeb3Modal 
+  useWeb3Modal
 } from '@web3modal/ethers5/react';
+import { toast } from 'sonner';
 
-// Import to initialize web3modal
-import '@/lib/web3modal';
+import { WALLETCONNECT_PROJECT_ID } from '@/lib/web3modal';
 
 interface WalletContextType {
   address: string | null;
@@ -35,7 +35,6 @@ export const WalletProvider: React.FC<{ children: ReactNode }> = ({ children }) 
   const [balance, setBalance] = useState('0');
   const [isConnecting, setIsConnecting] = useState(false);
 
-  // Web3Modal hooks
   const { walletProvider } = useWeb3ModalProvider();
   const { address, isConnected, chainId } = useWeb3ModalAccount();
   const { disconnect } = useDisconnect();
@@ -52,19 +51,14 @@ export const WalletProvider: React.FC<{ children: ReactNode }> = ({ children }) 
   }, []);
 
   const refreshBalance = useCallback(async () => {
-    if (address && provider) {
-      await updateBalance(address, provider);
-    }
+    if (address && provider) await updateBalance(address, provider);
   }, [address, provider, updateBalance]);
 
-  // Update provider and signer when wallet connects
   useEffect(() => {
     if (walletProvider && isConnected && address) {
       const web3Provider = new ethers.providers.Web3Provider(walletProvider);
-      const web3Signer = web3Provider.getSigner();
-      
       setProvider(web3Provider);
-      setSigner(web3Signer);
+      setSigner(web3Provider.getSigner());
       updateBalance(address, web3Provider);
     } else {
       setProvider(null);
@@ -73,10 +67,33 @@ export const WalletProvider: React.FC<{ children: ReactNode }> = ({ children }) 
     }
   }, [walletProvider, isConnected, address, updateBalance]);
 
+  const preflightWalletList = useCallback(async () => {
+    try {
+      const res = await fetch('https://api.web3modal.com/getWallets?page=1&entries=1', {
+        headers: {
+          'x-project-id': WALLETCONNECT_PROJECT_ID,
+          'x-sdk-type': 'w3m',
+          'x-sdk-version': 'react-ethers5-4.2.3',
+        },
+      });
+
+      if (res.status === 403) {
+        toast.error('WalletConnect is blocked for this Project ID / domain', {
+          description:
+            'Fix: use your own WalletConnect Cloud Project ID + allowlist this domain. Then set VITE_WALLETCONNECT_PROJECT_ID.',
+        });
+      }
+    } catch {
+      // ignore
+    }
+  }, []);
+
   const connectWallet = useCallback(() => {
     setIsConnecting(true);
-    open().finally(() => setIsConnecting(false));
-  }, [open]);
+    preflightWalletList()
+      .finally(() => open())
+      .finally(() => setIsConnecting(false));
+  }, [open, preflightWalletList]);
 
   const disconnectWallet = useCallback(() => {
     disconnect();
@@ -113,8 +130,6 @@ export const WalletProvider: React.FC<{ children: ReactNode }> = ({ children }) 
 
 export const useWallet = () => {
   const context = useContext(WalletContext);
-  if (context === undefined) {
-    throw new Error('useWallet must be used within a WalletProvider');
-  }
+  if (!context) throw new Error('useWallet must be used within a WalletProvider');
   return context;
 };

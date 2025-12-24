@@ -1,7 +1,13 @@
 import { createWeb3Modal, defaultConfig } from '@web3modal/ethers5/react';
 
-// WalletConnect Cloud Project ID
-const projectId = '2f05ae7f1116030f0e2dc533bf41ec08';
+/**
+ * WalletConnect Cloud Project ID
+ *
+ * Note: If you see 403 errors from api.web3modal.com, your Project ID is invalid
+ * or the current domain is not allowlisted in your WalletConnect Cloud settings.
+ */
+export const WALLETCONNECT_PROJECT_ID =
+  (import.meta as any).env?.VITE_WALLETCONNECT_PROJECT_ID || '2f05ae7f1116030f0e2dc533bf41ec08';
 
 // BSC Testnet configuration
 const bscTestnet = {
@@ -43,7 +49,7 @@ const ethersConfig = defaultConfig({
 export const web3Modal = createWeb3Modal({
   ethersConfig,
   chains: [bscTestnet, bscMainnet],
-  projectId,
+  projectId: WALLETCONNECT_PROJECT_ID,
   enableAnalytics: false,
   enableOnramp: false,
   themeMode: 'dark',
