@@ -3,49 +3,8 @@ import { Link } from 'react-router-dom';
 import { Layout } from '@/components/Layout';
 import { Button } from '@/components/ui/button';
 import { CampaignCard, Campaign } from '@/components/CampaignCard';
-import { Rocket, Shield, Zap, Users, ArrowRight, Coins, Lock, Globe } from 'lucide-react';
-
-const mockCampaigns: Campaign[] = [
-  {
-    id: '1',
-    title: 'DeFi Education Platform',
-    shortDescription: 'Building a free educational platform to teach blockchain and DeFi concepts to beginners worldwide.',
-    imageUrl: 'https://images.unsplash.com/photo-1639762681485-074b7f938ba0?w=800&auto=format&fit=crop',
-    goalAmount: 50000,
-    raisedAmount: 32500,
-    deadline: new Date(Date.now() + 15 * 24 * 60 * 60 * 1000),
-    creatorAddress: '0x1234...5678',
-    donorsCount: 128,
-    status: 'active',
-    tokenSymbol: 'TOKEN',
-  },
-  {
-    id: '2',
-    title: 'Green Energy NFT Marketplace',
-    shortDescription: 'Carbon-neutral NFT marketplace that plants trees with every transaction.',
-    imageUrl: 'https://images.unsplash.com/photo-1473341304170-971dccb5ac1e?w=800&auto=format&fit=crop',
-    goalAmount: 100000,
-    raisedAmount: 87000,
-    deadline: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
-    creatorAddress: '0xabcd...efgh',
-    donorsCount: 256,
-    status: 'active',
-    tokenSymbol: 'TOKEN',
-  },
-  {
-    id: '3',
-    title: 'Web3 Gaming Studio',
-    shortDescription: 'Creating the next generation of play-to-earn games with fair tokenomics.',
-    imageUrl: 'https://images.unsplash.com/photo-1511512578047-dfb367046420?w=800&auto=format&fit=crop',
-    goalAmount: 75000,
-    raisedAmount: 75000,
-    deadline: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000),
-    creatorAddress: '0x9876...5432',
-    donorsCount: 189,
-    status: 'completed',
-    tokenSymbol: 'TOKEN',
-  },
-];
+import { useCrowdfunding } from '@/hooks/useCrowdfunding';
+import { Rocket, Shield, Zap, Users, ArrowRight, Coins, Lock, Globe, Loader2 } from 'lucide-react';
 
 const features = [
   { icon: Shield, title: 'Fully Decentralized', description: 'All funds are managed by smart contracts with complete transparency.' },
@@ -55,6 +14,25 @@ const features = [
 ];
 
 const Index = () => {
+  const { campaigns, isLoading, tokenSymbol } = useCrowdfunding();
+
+  // Get latest 3 active campaigns for featured section
+  const featuredCampaigns: Campaign[] = campaigns
+    .filter(c => c.status === 'active')
+    .slice(0, 3)
+    .map(c => ({
+      id: c.id.toString(),
+      title: c.title,
+      shortDescription: c.description.slice(0, 150) + (c.description.length > 150 ? '...' : ''),
+      imageUrl: c.imageUrl,
+      goalAmount: parseFloat(c.goalAmount),
+      raisedAmount: parseFloat(c.raisedAmount),
+      deadline: c.deadline,
+      creatorAddress: c.creator,
+      donorsCount: c.donorCount,
+      status: c.status === 'cancelled' ? 'failed' : c.status,
+      tokenSymbol: tokenSymbol,
+    }));
   return (
     <Layout>
       {/* Hero Section */}
@@ -138,11 +116,28 @@ const Index = () => {
               </Link>
             </Button>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {mockCampaigns.map((campaign) => (
-              <CampaignCard key={campaign.id} campaign={campaign} />
-            ))}
-          </div>
+          
+          {isLoading ? (
+            <div className="flex items-center justify-center py-12">
+              <Loader2 className="w-10 h-10 text-primary animate-spin" />
+            </div>
+          ) : featuredCampaigns.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {featuredCampaigns.map((campaign) => (
+                <CampaignCard key={campaign.id} campaign={campaign} />
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-12">
+              <Rocket className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
+              <h3 className="font-display text-xl font-semibold text-foreground mb-2">No Active Campaigns Yet</h3>
+              <p className="text-muted-foreground mb-6">Be the first to create a campaign!</p>
+              <Button variant="gradient" asChild>
+                <Link to="/create">Create Campaign</Link>
+              </Button>
+            </div>
+          )}
+          
           <div className="text-center mt-8 sm:hidden">
             <Button variant="outline" asChild>
               <Link to="/campaigns">View All Campaigns</Link>

@@ -120,27 +120,19 @@ export const useCrowdfunding = () => {
     }
   }, [crowdfundingContract, tokenDecimals, formatCampaign]);
 
+  // Note: Contract doesn't have getCampaignDonations - we return empty array
+  // Donations can be tracked via Donated events if needed
   const getCampaignDonations = useCallback(async (id: number): Promise<DonationData[]> => {
-    if (!crowdfundingContract) return [];
-    
-    try {
-      const donations = await crowdfundingContract.getCampaignDonations(id);
-      return donations.map((d: any) => ({
-        donor: d.donor,
-        amount: ethers.utils.formatUnits(d.amount, tokenDecimals),
-        timestamp: new Date(d.timestamp.toNumber() * 1000),
-      }));
-    } catch (error) {
-      console.error('Error fetching donations:', error);
-      return [];
-    }
-  }, [crowdfundingContract, tokenDecimals]);
+    // Contract doesn't expose this function - would need to parse events
+    return [];
+  }, []);
 
+  // Contract has donations(campaignId, address) mapping
   const getDonorContribution = useCallback(async (campaignId: number, donor: string): Promise<string> => {
     if (!crowdfundingContract) return '0';
     
     try {
-      const contribution = await crowdfundingContract.getDonorContribution(campaignId, donor);
+      const contribution = await crowdfundingContract.donations(campaignId, donor);
       return ethers.utils.formatUnits(contribution, tokenDecimals);
     } catch (error) {
       console.error('Error fetching contribution:', error);
@@ -261,44 +253,26 @@ export const useCrowdfunding = () => {
     }
   }, [crowdfundingContract, fetchCampaigns]);
 
+  // Note: Contract doesn't have cancelCampaign function
   const cancelCampaign = useCallback(async (campaignId: number): Promise<boolean> => {
-    if (!crowdfundingContract) {
-      toast.error('Contract not initialized');
-      return false;
-    }
+    toast.error('Campaign cancellation is not supported by this contract');
+    return false;
+  }, []);
 
-    try {
-      toast.loading('Cancelling campaign...', { id: 'cancel' });
-      const tx = await crowdfundingContract.cancelCampaign(campaignId);
-      await tx.wait();
-      
-      toast.success('Campaign cancelled!', { id: 'cancel' });
-      await fetchCampaigns();
-      return true;
-    } catch (error: any) {
-      console.error('Error cancelling campaign:', error);
-      toast.error(error.reason || 'Failed to cancel campaign', { id: 'cancel' });
-      return false;
-    }
-  }, [crowdfundingContract, fetchCampaigns]);
-
+  // Filter campaigns by creator from already fetched campaigns
   const getMyCampaigns = useCallback(async (): Promise<number[]> => {
-    if (!crowdfundingContract || !address) return [];
-    
-    try {
-      const ids = await crowdfundingContract.getCampaignsByCreator(address);
-      return ids.map((id: any) => id.toNumber());
-    } catch (error) {
-      console.error('Error fetching my campaigns:', error);
-      return [];
-    }
-  }, [crowdfundingContract, address]);
+    if (!address) return [];
+    return campaigns
+      .filter(c => c.creator.toLowerCase() === address.toLowerCase())
+      .map(c => c.id);
+  }, [campaigns, address]);
 
+  // Contract has getUserDonations(address) that returns campaign IDs
   const getMyDonations = useCallback(async (): Promise<number[]> => {
     if (!crowdfundingContract || !address) return [];
     
     try {
-      const ids = await crowdfundingContract.getCampaignsByDonor(address);
+      const ids = await crowdfundingContract.getUserDonations(address);
       return ids.map((id: any) => id.toNumber());
     } catch (error) {
       console.error('Error fetching my donations:', error);

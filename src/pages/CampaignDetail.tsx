@@ -32,7 +32,7 @@ const CampaignDetail = () => {
   const navigate = useNavigate();
   const { isConnected, address } = useWallet();
   const { tokenBalance, tokenSymbol, crowdfundingContract } = useContracts();
-  const { getCampaign, getCampaignDonations, getDonorContribution, donate, claimFunds, claimRefund, cancelCampaign } = useCrowdfunding();
+  const { getCampaign, getCampaignDonations, getDonorContribution, donate, claimFunds, claimRefund } = useCrowdfunding();
   
   const [campaign, setCampaign] = useState<CampaignData | null>(null);
   const [donations, setDonations] = useState<DonationData[]>([]);
@@ -121,14 +121,6 @@ const CampaignDetail = () => {
     setIsProcessing(false);
   };
 
-  const handleCancelCampaign = async () => {
-    if (!campaign) return;
-    setIsProcessing(true);
-    await cancelCampaign(campaign.id);
-    const updatedCampaign = await getCampaign(campaign.id);
-    setCampaign(updatedCampaign);
-    setIsProcessing(false);
-  };
 
   const copyAddress = (addr: string) => {
     navigator.clipboard.writeText(addr);
@@ -168,9 +160,9 @@ const CampaignDetail = () => {
   const isEnded = campaign.deadline.getTime() < Date.now();
   const isCreator = address?.toLowerCase() === campaign.creator.toLowerCase();
   const canClaimFunds = isCreator && isEnded && campaign.status === 'completed' && !campaign.claimed;
-  const canClaimRefund = parseFloat(myContribution) > 0 && (campaign.cancelled || (isEnded && campaign.status === 'failed'));
-  const canCancel = isCreator && !isEnded && !campaign.cancelled && !campaign.claimed;
-  const canDonate = campaign.status === 'active' && !isEnded && !campaign.cancelled;
+  const canClaimRefund = parseFloat(myContribution) > 0 && isEnded && campaign.status === 'failed';
+  const canDonate = campaign.status === 'active' && !isEnded;
+  
 
   const statusConfig = {
     active: { label: 'Active', icon: Clock, className: 'bg-emerald/20 text-emerald border-emerald/30' },
@@ -383,14 +375,7 @@ const CampaignDetail = () => {
                       </Button>
                     )}
 
-                    {canCancel && (
-                      <Button variant="destructive" className="w-full" onClick={handleCancelCampaign} disabled={isProcessing}>
-                        {isProcessing ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <XCircle className="w-4 h-4 mr-2" />}
-                        Cancel Campaign
-                      </Button>
-                    )}
-
-                    {!canDonate && !canClaimFunds && !canClaimRefund && !canCancel && (
+                    {!canDonate && !canClaimFunds && !canClaimRefund && (
                       <div className="text-center py-4">
                         <p className="text-muted-foreground">This campaign is no longer accepting donations.</p>
                       </div>
