@@ -212,21 +212,11 @@ const CampaignDetail = () => {
           <AlertTriangle className="w-16 h-16 text-destructive mx-auto mb-4" />
           <h1 className="font-display text-2xl font-bold text-foreground mb-2">Campaign Not Found</h1>
           <p className="text-muted-foreground mb-6">
-            {notFound 
-              ? `Campaign #${id} doesn't exist or has been removed.`
-              : 'Please configure the contracts in settings to view campaigns.'
-            }
+            Campaign #{id} doesn't exist or has been removed.
           </p>
-          <div className="flex gap-4 justify-center">
-            <Button variant="outline" asChild>
-              <Link to="/campaigns"><ArrowLeft className="w-4 h-4 mr-2" />Browse Campaigns</Link>
-            </Button>
-            {!crowdfundingContract && (
-              <Button variant="gradient" asChild>
-                <Link to="/settings">Go to Settings</Link>
-              </Button>
-            )}
-          </div>
+          <Button variant="outline" asChild>
+            <Link to="/campaigns"><ArrowLeft className="w-4 h-4 mr-2" />Browse Campaigns</Link>
+          </Button>
         </div>
       </Layout>
     );
