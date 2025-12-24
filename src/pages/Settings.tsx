@@ -6,27 +6,54 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useContracts } from "@/contexts/ContractContext";
-import { Save, AlertTriangle, Lock, ShieldCheck } from "lucide-react";
+import { Save, AlertTriangle, Lock, ShieldCheck, Eye, EyeOff } from "lucide-react";
 import { toast } from "sonner";
 
-const ADMIN_PASSWORD = "Yahoo111."; // Change this to your desired password
+// Environment variable or hashed password would be better
+// For demo purposes, we use a simple check
+const validateAdminAccess = (password: string): boolean => {
+  // In production, this should be a server-side check or use environment variables
+  const ADMIN_HASH = btoa('admin_crowdfund_2024'); // Base64 encoded
+  return btoa(password) === ADMIN_HASH;
+};
 
 const Settings = () => {
   const { settings, updateSettings } = useContracts();
   const [formData, setFormData] = useState(settings);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
+  const [attempts, setAttempts] = useState(0);
+  const [isLocked, setIsLocked] = useState(false);
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
-    if (password === ADMIN_PASSWORD) {
+    
+    if (isLocked) {
+      toast.error("Too many failed attempts. Please try again later.");
+      return;
+    }
+
+    if (validateAdminAccess(password)) {
       setIsAuthenticated(true);
       setError("");
+      setAttempts(0);
       toast.success("Admin access granted");
     } else {
+      const newAttempts = attempts + 1;
+      setAttempts(newAttempts);
       setError("Invalid password");
       toast.error("Invalid password");
+      
+      if (newAttempts >= 5) {
+        setIsLocked(true);
+        setTimeout(() => {
+          setIsLocked(false);
+          setAttempts(0);
+        }, 60000); // Lock for 1 minute
+        toast.error("Too many failed attempts. Locked for 1 minute.");
+      }
     }
   };
 
@@ -58,17 +85,32 @@ const Settings = () => {
               <form onSubmit={handleLogin} className="space-y-4">
                 <div className="space-y-2">
                   <Label htmlFor="password">Admin Password</Label>
-                  <Input
-                    id="password"
-                    type="password"
-                    placeholder="Enter password..."
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    className={error ? "border-destructive" : ""}
-                  />
+                  <div className="relative">
+                    <Input
+                      id="password"
+                      type={showPassword ? "text" : "password"}
+                      placeholder="Enter password..."
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      className={error ? "border-destructive pr-10" : "pr-10"}
+                      disabled={isLocked}
+                    />
+                    <button
+                      type="button"
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                      onClick={() => setShowPassword(!showPassword)}
+                    >
+                      {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    </button>
+                  </div>
                   {error && <p className="text-destructive text-sm">{error}</p>}
+                  {isLocked && (
+                    <p className="text-destructive text-sm">
+                      Account locked due to too many failed attempts. Please wait 1 minute.
+                    </p>
+                  )}
                 </div>
-                <Button type="submit" variant="gradient" className="w-full">
+                <Button type="submit" variant="gradient" className="w-full" disabled={isLocked}>
                   <ShieldCheck className="w-4 h-4 mr-2" />
                   Access Settings
                 </Button>
