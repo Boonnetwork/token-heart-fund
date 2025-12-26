@@ -1,4 +1,4 @@
-import { createWeb3Modal, defaultConfig } from '@web3modal/ethers5/react';
+import { createWeb3Modal, defaultConfig } from "@web3modal/ethers5/react";
 
 /**
  * WalletConnect Cloud Project ID
@@ -7,32 +7,32 @@ import { createWeb3Modal, defaultConfig } from '@web3modal/ethers5/react';
  * or the current domain is not allowlisted in your WalletConnect Cloud settings.
  */
 export const WALLETCONNECT_PROJECT_ID =
-  (import.meta as any).env?.VITE_WALLETCONNECT_PROJECT_ID || '2f05ae7f1116030f0e2dc533bf41ec08';
+  (import.meta as any).env?.VITE_WALLETCONNECT_PROJECT_ID || "d0d285318792eb7b50c5ce363ebd9501";
 
 // BSC Testnet configuration
 const bscTestnet = {
   chainId: 97,
-  name: 'BNB Smart Chain Testnet',
-  currency: 'tBNB',
-  explorerUrl: 'https://testnet.bscscan.com',
-  rpcUrl: 'https://data-seed-prebsc-1-s1.bnbchain.org:8545',
+  name: "BNB Smart Chain Testnet",
+  currency: "tBNB",
+  explorerUrl: "https://testnet.bscscan.com",
+  rpcUrl: "https://data-seed-prebsc-1-s1.bnbchain.org:8545",
 };
 
 // BSC Mainnet configuration (for optional support)
 const bscMainnet = {
   chainId: 56,
-  name: 'BNB Smart Chain',
-  currency: 'BNB',
-  explorerUrl: 'https://bscscan.com',
-  rpcUrl: 'https://bsc-dataseed.binance.org',
+  name: "BNB Smart Chain",
+  currency: "BNB",
+  explorerUrl: "https://bscscan.com",
+  rpcUrl: "https://bsc-dataseed.binance.org",
 };
 
 // Metadata for the dApp
 const metadata = {
-  name: 'CrowdFund Platform',
-  description: 'Decentralized crowdfunding platform on BNB Smart Chain',
-  url: typeof window !== 'undefined' ? window.location.origin : 'https://crowdfund.app',
-  icons: ['https://avatars.githubusercontent.com/u/37784886'],
+  name: "CrowdFund Platform",
+  description: "Decentralized crowdfunding platform on BNB Smart Chain",
+  url: typeof window !== "undefined" ? window.location.origin : "https://crowdfund.app",
+  icons: ["https://avatars.githubusercontent.com/u/37784886"],
 };
 
 // Ethers config
@@ -52,9 +52,9 @@ export const web3Modal = createWeb3Modal({
   projectId: WALLETCONNECT_PROJECT_ID,
   enableAnalytics: false,
   enableOnramp: false,
-  themeMode: 'dark',
+  themeMode: "dark",
   themeVariables: {
-    '--w3m-accent': '#10b981',
-    '--w3m-border-radius-master': '2px',
+    "--w3m-accent": "#10b981",
+    "--w3m-border-radius-master": "2px",
   },
 });
