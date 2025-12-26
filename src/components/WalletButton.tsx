@@ -9,7 +9,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { useWallet, BSC_TESTNET_CHAIN_ID } from '@/contexts/WalletContext';
+import { useWallet, BSC_MAINNET_CHAIN_ID } from '@/contexts/WalletContext';
 import { useContracts } from '@/contexts/ContractContext';
 import { toast } from 'sonner';
 
@@ -22,11 +22,11 @@ export const WalletButton: React.FC = () => {
     balance,
     connectWallet, 
     disconnectWallet,
-    switchToBSCTestnet 
+    switchToBSCMainnet 
   } = useWallet();
   const { tokenBalance, tokenSymbol } = useContracts();
 
-  const isWrongNetwork = isConnected && chainId !== BSC_TESTNET_CHAIN_ID;
+  const isWrongNetwork = isConnected && chainId !== BSC_MAINNET_CHAIN_ID;
 
   const formatAddress = (addr: string) => {
     return `${addr.slice(0, 6)}...${addr.slice(-4)}`;
@@ -41,7 +41,7 @@ export const WalletButton: React.FC = () => {
 
   const openExplorer = () => {
     if (address) {
-      window.open(`https://testnet.bscscan.com/address/${address}`, '_blank');
+      window.open(`https://bscscan.com/address/${address}`, '_blank');
     }
   };
 
@@ -65,11 +65,11 @@ export const WalletButton: React.FC = () => {
       <Button 
         variant="destructive" 
         size="lg"
-        onClick={switchToBSCTestnet}
+        onClick={switchToBSCMainnet}
         className="gap-2"
       >
         <AlertTriangle className="w-5 h-5" />
-        Switch to BSC Testnet
+        Switch to BSC Mainnet
       </Button>
     );
   }
@@ -88,7 +88,7 @@ export const WalletButton: React.FC = () => {
         <div className="px-2 py-3 space-y-2">
           <div className="flex items-center justify-between">
             <span className="text-muted-foreground text-sm">BNB Balance</span>
-            <span className="font-mono text-foreground">{parseFloat(balance).toFixed(4)} tBNB</span>
+            <span className="font-mono text-foreground">{parseFloat(balance).toFixed(4)} BNB</span>
           </div>
           <div className="flex items-center justify-between">
             <span className="text-muted-foreground text-sm">Token Balance</span>

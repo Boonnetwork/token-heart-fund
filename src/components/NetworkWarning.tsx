@@ -1,12 +1,12 @@
 import React from 'react';
 import { AlertTriangle, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { useWallet, BSC_TESTNET_CHAIN_ID } from '@/contexts/WalletContext';
+import { useWallet, BSC_MAINNET_CHAIN_ID } from '@/contexts/WalletContext';
 
 export const NetworkWarning: React.FC = () => {
-  const { isConnected, chainId, switchToBSCTestnet } = useWallet();
+  const { isConnected, chainId, switchToBSCMainnet } = useWallet();
 
-  const isWrongNetwork = isConnected && chainId !== BSC_TESTNET_CHAIN_ID;
+  const isWrongNetwork = isConnected && chainId !== BSC_MAINNET_CHAIN_ID;
 
   if (!isWrongNetwork) return null;
 
@@ -16,13 +16,13 @@ export const NetworkWarning: React.FC = () => {
         <div className="flex items-center gap-2">
           <AlertTriangle className="w-5 h-5 shrink-0" />
           <span className="text-sm font-medium">
-            You are connected to the wrong network. Please switch to BSC Testnet to use this platform.
+            You are connected to the wrong network. Please switch to BSC Mainnet to use this platform.
           </span>
         </div>
         <Button 
           variant="outline" 
           size="sm" 
-          onClick={switchToBSCTestnet}
+          onClick={switchToBSCMainnet}
           className="shrink-0 border-destructive-foreground/50 text-destructive-foreground hover:bg-destructive-foreground/10"
         >
           Switch Network
