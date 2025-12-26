@@ -27,7 +27,7 @@ export interface DonationData {
 }
 
 const shortenTxHash = (hash: string) => `${hash.slice(0, 10)}...${hash.slice(-8)}`;
-const getTxUrl = (hash: string) => `https://testnet.bscscan.com/tx/${hash}`;
+const getTxUrl = (hash: string) => `https://bscscan.com/tx/${hash}`;
 
 export const useCrowdfunding = () => {
   const { address } = useWallet();
