@@ -99,9 +99,9 @@ export const WalletProvider: React.FC<{ children: ReactNode }> = ({ children }) 
     disconnect();
   }, [disconnect]);
 
-  const switchToBSCMainnet = useCallback(async () => {
+  const switchToBSCTestnet = useCallback(async () => {
     try {
-      await switchNetwork(BSC_MAINNET_CHAIN_ID);
+      await switchNetwork(BSC_TESTNET_CHAIN_ID);
     } catch (error) {
       console.error('Error switching network:', error);
     }
@@ -119,7 +119,7 @@ export const WalletProvider: React.FC<{ children: ReactNode }> = ({ children }) 
         balance,
         connectWallet,
         disconnectWallet,
-        switchToBSCMainnet,
+        switchToBSCTestnet,
         refreshBalance,
       }}
     >
