@@ -21,13 +21,13 @@ interface WalletContextType {
   balance: string;
   connectWallet: () => void;
   disconnectWallet: () => void;
-  switchToBSCMainnet: () => Promise<void>;
+  switchToBSCTestnet: () => Promise<void>;
   refreshBalance: () => Promise<void>;
 }
 
 const WalletContext = createContext<WalletContextType | undefined>(undefined);
 
-export const BSC_MAINNET_CHAIN_ID = 56;
+export const BSC_TESTNET_CHAIN_ID = 97;
 
 export const WalletProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [provider, setProvider] = useState<ethers.providers.Web3Provider | null>(null);
@@ -99,9 +99,9 @@ export const WalletProvider: React.FC<{ children: ReactNode }> = ({ children }) 
     disconnect();
   }, [disconnect]);
 
-  const switchToBSCMainnet = useCallback(async () => {
+  const switchToBSCTestnet = useCallback(async () => {
     try {
-      await switchNetwork(BSC_MAINNET_CHAIN_ID);
+      await switchNetwork(BSC_TESTNET_CHAIN_ID);
     } catch (error) {
       console.error('Error switching network:', error);
     }
@@ -119,7 +119,7 @@ export const WalletProvider: React.FC<{ children: ReactNode }> = ({ children }) 
         balance,
         connectWallet,
         disconnectWallet,
-        switchToBSCMainnet,
+        switchToBSCTestnet,
         refreshBalance,
       }}
     >

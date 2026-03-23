@@ -97,12 +97,12 @@ export const Footer = forwardRef<HTMLElement>((_, ref) => {
             <ul className="space-y-2">
               <li>
                 <a 
-                  href="https://bscscan.com" 
+                  href="https://testnet.bscscan.com" 
                   target="_blank" 
                   rel="noopener noreferrer"
                   className="text-muted-foreground hover:text-primary transition-colors flex items-center gap-1"
                 >
-                  BSC Explorer
+                  BSC Testnet Explorer
                   <ExternalLink className="w-3 h-3" />
                 </a>
               </li>
@@ -119,7 +119,7 @@ export const Footer = forwardRef<HTMLElement>((_, ref) => {
               </li>
               <li>
                 <a 
-                  href="https://bscscan.com"
+                  href="https://testnet.bscscan.com"
                   target="_blank"
                   rel="noopener noreferrer" 
                   className="text-muted-foreground hover:text-primary transition-colors flex items-center gap-1"
@@ -138,7 +138,7 @@ export const Footer = forwardRef<HTMLElement>((_, ref) => {
           </p>
           <p className="text-muted-foreground text-sm flex items-center gap-2">
             <span className="w-2 h-2 rounded-full bg-emerald animate-pulse" />
-            BSC Mainnet
+            BSC Testnet
           </p>
         </div>
       </div>
