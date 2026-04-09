@@ -24,6 +24,13 @@ export interface DonationData {
   donor: string;
   amount: string;
   timestamp: Date;
+  txHash?: string;
+}
+
+export interface ClaimEventData {
+  txHash: string;
+  amount: string;
+  platformFee: string;
 }
 
 const shortenTxHash = (hash: string) => `${hash.slice(0, 10)}...${hash.slice(-8)}`;
@@ -46,6 +53,7 @@ export const useCrowdfunding = () => {
     let status: CampaignData['status'] = 'active';
     if (raw.cancelled) status = 'cancelled';
     else if (raw.claimed) status = 'completed';
+    else if (parseFloat(raisedAmount) >= parseFloat(goalAmount)) status = 'completed';
     else if (deadline.getTime() < now) status = parseFloat(raisedAmount) >= parseFloat(goalAmount) ? 'completed' : 'failed';
 
     return {
@@ -84,9 +92,34 @@ export const useCrowdfunding = () => {
   const getCampaignDonations = useCallback(async (id: number): Promise<DonationData[]> => {
     if (!crowdfundingContract) return [];
     try {
-      const donations = await crowdfundingContract.getCampaignDonations(id);
-      return donations.map((d: any) => ({ donor: d.donor, amount: ethers.utils.formatUnits(d.amount, tokenDecimals), timestamp: new Date(d.timestamp.toNumber() * 1000) }));
+      const [donations, events] = await Promise.all([
+        crowdfundingContract.getCampaignDonations(id),
+        crowdfundingContract.queryFilter(crowdfundingContract.filters.DonationMade(id)).catch(() => []),
+      ]);
+      
+      return donations.map((d: any, index: number) => ({
+        donor: d.donor,
+        amount: ethers.utils.formatUnits(d.amount, tokenDecimals),
+        timestamp: new Date(d.timestamp.toNumber() * 1000),
+        txHash: events[index]?.transactionHash || undefined,
+      }));
     } catch { return []; }
+  }, [crowdfundingContract, tokenDecimals]);
+
+  const getClaimEvent = useCallback(async (campaignId: number): Promise<ClaimEventData | null> => {
+    if (!crowdfundingContract) return null;
+    try {
+      const events = await crowdfundingContract.queryFilter(crowdfundingContract.filters.FundsClaimed(campaignId));
+      if (events.length > 0) {
+        const ev = events[0];
+        return {
+          txHash: ev.transactionHash,
+          amount: ethers.utils.formatUnits(ev.args?.amount || 0, tokenDecimals),
+          platformFee: ethers.utils.formatUnits(ev.args?.platformFee || 0, tokenDecimals),
+        };
+      }
+      return null;
+    } catch { return null; }
   }, [crowdfundingContract, tokenDecimals]);
 
   const getDonorContribution = useCallback(async (campaignId: number, donor: string): Promise<string> => {
@@ -113,10 +146,22 @@ export const useCrowdfunding = () => {
   const donate = useCallback(async (campaignId: number, amount: string): Promise<boolean> => {
     if (!crowdfundingContract || !tokenContract) { toast.error('Contracts not initialized'); return false; }
     try {
-      const amountWei = ethers.utils.parseUnits(amount, tokenDecimals);
-      if (parseFloat(await getAllowance()) < parseFloat(amount)) {
+      // Check campaign status and remaining amount
+      const campaign = await getCampaign(campaignId);
+      if (!campaign) { toast.error('Campaign not found'); return false; }
+      
+      const remaining = parseFloat(campaign.goalAmount) - parseFloat(campaign.raisedAmount);
+      if (remaining <= 0) { toast.error('Campaign goal has already been reached'); return false; }
+      
+      const donateAmt = Math.min(parseFloat(amount), remaining);
+      if (donateAmt < parseFloat(amount)) {
+        toast.info(`Amount capped to ${donateAmt.toLocaleString()} ${tokenSymbol} (remaining to goal)`);
+      }
+
+      const amountWei = ethers.utils.parseUnits(donateAmt.toString(), tokenDecimals);
+      if (parseFloat(await getAllowance()) < donateAmt) {
         toast.loading('Approving tokens...', { id: 'donate' });
-        if (!await approveTokens(amount)) { toast.error('Token approval failed', { id: 'donate' }); return false; }
+        if (!await approveTokens(donateAmt.toString())) { toast.error('Token approval failed', { id: 'donate' }); return false; }
       }
       toast.loading('Processing donation...', { id: 'donate' });
       const tx = await crowdfundingContract.donate(campaignId, amountWei);
@@ -126,7 +171,7 @@ export const useCrowdfunding = () => {
       await fetchCampaigns();
       return true;
     } catch (error: any) { toast.error(error.reason || 'Failed to donate', { id: 'donate' }); return false; }
-  }, [crowdfundingContract, tokenContract, tokenDecimals, approveTokens, getAllowance, fetchCampaigns, refreshTokenBalance]);
+  }, [crowdfundingContract, tokenContract, tokenDecimals, tokenSymbol, approveTokens, getAllowance, fetchCampaigns, refreshTokenBalance, getCampaign]);
 
   const claimFunds = useCallback(async (campaignId: number): Promise<boolean> => {
     if (!crowdfundingContract) { toast.error('Contract not initialized'); return false; }
@@ -176,5 +221,5 @@ export const useCrowdfunding = () => {
 
   useEffect(() => { if (crowdfundingContract) fetchCampaigns(); }, [crowdfundingContract, fetchCampaigns]);
 
-  return { campaigns, campaignCount, isLoading, fetchCampaigns, getCampaign, getCampaignDonations, getDonorContribution, createCampaign, donate, claimFunds, claimRefund, cancelCampaign, getMyCampaigns, getMyDonations, tokenSymbol };
+  return { campaigns, campaignCount, isLoading, fetchCampaigns, getCampaign, getCampaignDonations, getClaimEvent, getDonorContribution, createCampaign, donate, claimFunds, claimRefund, cancelCampaign, getMyCampaigns, getMyDonations, tokenSymbol };
 };

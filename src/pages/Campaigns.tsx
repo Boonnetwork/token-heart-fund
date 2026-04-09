@@ -7,9 +7,10 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useCrowdfunding } from '@/hooks/useCrowdfunding';
-import { useContracts } from '@/contexts/ContractContext';
-import { Search, Filter, AlertCircle, Rocket, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Search, Filter, Rocket, ChevronLeft, ChevronRight, RefreshCw } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { toast } from 'sonner';
+import { cn } from '@/lib/utils';
 
 type StatusFilter = 'all' | 'active' | 'completed' | 'failed' | 'cancelled';
 type SortOption = 'newest' | 'ending-soon' | 'most-funded' | 'most-backers';
@@ -17,12 +18,19 @@ type SortOption = 'newest' | 'ending-soon' | 'most-funded' | 'most-backers';
 const ITEMS_PER_PAGE = 9;
 
 const Campaigns = () => {
-  const { campaigns, isLoading, tokenSymbol } = useCrowdfunding();
-  const { crowdfundingContract } = useContracts();
+  const { campaigns, isLoading, tokenSymbol, fetchCampaigns } = useCrowdfunding();
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
   const [sortOption, setSortOption] = useState<SortOption>('newest');
   const [currentPage, setCurrentPage] = useState(1);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+
+  const handleRefresh = async () => {
+    setIsRefreshing(true);
+    await fetchCampaigns();
+    setIsRefreshing(false);
+    toast.success('Campaigns refreshed');
+  };
 
   const filteredAndSortedCampaigns = useMemo(() => {
     let result = campaigns.map(c => ({
@@ -39,7 +47,6 @@ const Campaigns = () => {
       tokenSymbol: tokenSymbol,
     } as Campaign));
 
-    // Filter by search
     if (searchQuery) {
       const query = searchQuery.toLowerCase();
       result = result.filter(c => 
@@ -48,55 +55,27 @@ const Campaigns = () => {
       );
     }
 
-    // Filter by status
     if (statusFilter !== 'all') {
       result = result.filter(c => c.status === statusFilter);
     }
 
-    // Sort
     switch (sortOption) {
-      case 'newest':
-        result.sort((a, b) => parseInt(b.id) - parseInt(a.id));
-        break;
-      case 'ending-soon':
-        result.sort((a, b) => a.deadline.getTime() - b.deadline.getTime());
-        break;
-      case 'most-funded':
-        result.sort((a, b) => b.raisedAmount - a.raisedAmount);
-        break;
-      case 'most-backers':
-        result.sort((a, b) => b.donorsCount - a.donorsCount);
-        break;
+      case 'newest': result.sort((a, b) => parseInt(b.id) - parseInt(a.id)); break;
+      case 'ending-soon': result.sort((a, b) => a.deadline.getTime() - b.deadline.getTime()); break;
+      case 'most-funded': result.sort((a, b) => b.raisedAmount - a.raisedAmount); break;
+      case 'most-backers': result.sort((a, b) => b.donorsCount - a.donorsCount); break;
     }
 
     return result;
   }, [campaigns, searchQuery, statusFilter, sortOption, tokenSymbol]);
 
-  // Pagination
   const totalPages = Math.ceil(filteredAndSortedCampaigns.length / ITEMS_PER_PAGE);
   const paginatedCampaigns = useMemo(() => {
     const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
     return filteredAndSortedCampaigns.slice(startIndex, startIndex + ITEMS_PER_PAGE);
   }, [filteredAndSortedCampaigns, currentPage]);
 
-  // Reset page when filters change
-  React.useEffect(() => {
-    setCurrentPage(1);
-  }, [searchQuery, statusFilter, sortOption]);
-
-  if (!crowdfundingContract) {
-    return (
-      <Layout>
-        <div className="container mx-auto px-4 py-20 text-center">
-          <AlertCircle className="w-16 h-16 text-muted-foreground mx-auto mb-6" />
-          <h1 className="font-display text-2xl font-bold text-foreground mb-4">Contracts Not Configured</h1>
-          <p className="text-muted-foreground mb-6">
-            Please connect your wallet to view campaigns.
-          </p>
-        </div>
-      </Layout>
-    );
-  }
+  React.useEffect(() => { setCurrentPage(1); }, [searchQuery, statusFilter, sortOption]);
 
   return (
     <Layout>
@@ -106,9 +85,15 @@ const Campaigns = () => {
             <h1 className="font-display text-3xl md:text-4xl font-bold text-foreground mb-2">All Campaigns</h1>
             <p className="text-muted-foreground">Discover and support innovative blockchain projects</p>
           </div>
-          <Button variant="gradient" asChild>
-            <Link to="/create"><Rocket className="w-4 h-4 mr-2" />Create Campaign</Link>
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button variant="ghost" size="sm" onClick={handleRefresh} disabled={isRefreshing}>
+              <RefreshCw className={cn("w-4 h-4 mr-1", isRefreshing && "animate-spin")} />
+              Refresh
+            </Button>
+            <Button variant="gradient" asChild>
+              <Link to="/create"><Rocket className="w-4 h-4 mr-2" />Create Campaign</Link>
+            </Button>
+          </div>
         </div>
         
         {/* Filters */}
@@ -183,36 +168,19 @@ const Campaigns = () => {
               ))}
             </div>
             
-            {/* Pagination */}
             {totalPages > 1 && (
               <div className="flex items-center justify-center gap-2 mt-8">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
-                  disabled={currentPage === 1}
-                >
+                <Button variant="outline" size="sm" onClick={() => setCurrentPage(p => Math.max(1, p - 1))} disabled={currentPage === 1}>
                   <ChevronLeft className="w-4 h-4" />
                 </Button>
                 <div className="flex items-center gap-1">
                   {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-                    <Button
-                      key={page}
-                      variant={currentPage === page ? 'default' : 'outline'}
-                      size="sm"
-                      onClick={() => setCurrentPage(page)}
-                      className="w-8 h-8 p-0"
-                    >
+                    <Button key={page} variant={currentPage === page ? 'default' : 'outline'} size="sm" onClick={() => setCurrentPage(page)} className="w-8 h-8 p-0">
                       {page}
                     </Button>
                   ))}
                 </div>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
-                  disabled={currentPage === totalPages}
-                >
+                <Button variant="outline" size="sm" onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))} disabled={currentPage === totalPages}>
                   <ChevronRight className="w-4 h-4" />
                 </Button>
               </div>

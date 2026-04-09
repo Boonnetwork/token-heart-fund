@@ -7,8 +7,10 @@ import { useWallet } from '@/contexts/WalletContext';
 import { useContracts } from '@/contexts/ContractContext';
 import { useCrowdfunding, CampaignData } from '@/hooks/useCrowdfunding';
 import { CampaignCard, Campaign } from '@/components/CampaignCard';
-import { Wallet, Coins, Rocket, TrendingUp, Plus, Loader2, Heart, AlertCircle, XCircle } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Wallet, Coins, Rocket, TrendingUp, Plus, Loader2, Heart, AlertCircle, XCircle, RefreshCw } from 'lucide-react';
+import { Link, Navigate } from 'react-router-dom';
+import { cn } from '@/lib/utils';
+import { toast } from 'sonner';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -24,13 +26,19 @@ import {
 const Dashboard = () => {
   const { isConnected, address } = useWallet();
   const { tokenBalance, tokenSymbol, crowdfundingContract } = useContracts();
-  const { campaigns, getMyCampaigns, getMyDonations, cancelCampaign, getDonorContribution, isLoading } = useCrowdfunding();
+  const { campaigns, getMyCampaigns, getMyDonations, cancelCampaign, getDonorContribution, isLoading, fetchCampaigns } = useCrowdfunding();
   
   const [myCampaignIds, setMyCampaignIds] = useState<number[]>([]);
   const [myDonationIds, setMyDonationIds] = useState<number[]>([]);
   const [totalDonated, setTotalDonated] = useState(0);
   const [loadingStats, setLoadingStats] = useState(true);
   const [cancellingId, setCancellingId] = useState<number | null>(null);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+
+  // Redirect to home if wallet not connected
+  if (!isConnected) {
+    return <Navigate to="/" replace />;
+  }
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -45,7 +53,6 @@ const Dashboard = () => {
       setMyCampaignIds(campaignIds);
       setMyDonationIds(donationIds);
 
-      // Calculate total donated
       let total = 0;
       for (const id of donationIds) {
         const contribution = await getDonorContribution(id, address);
@@ -69,6 +76,13 @@ const Dashboard = () => {
     setCancellingId(null);
   };
 
+  const handleRefresh = async () => {
+    setIsRefreshing(true);
+    await fetchCampaigns();
+    setIsRefreshing(false);
+    toast.success('Dashboard refreshed');
+  };
+
   const mapToCampaignCard = (c: CampaignData): Campaign => ({
     id: c.id.toString(),
     title: c.title,
@@ -82,18 +96,6 @@ const Dashboard = () => {
     status: c.status,
     tokenSymbol: tokenSymbol,
   });
-
-  if (!isConnected) {
-    return (
-      <Layout>
-        <div className="container mx-auto px-4 py-20 text-center">
-          <Wallet className="w-16 h-16 text-muted-foreground mx-auto mb-6" />
-          <h1 className="font-display text-2xl font-bold text-foreground mb-4">Connect Your Wallet</h1>
-          <p className="text-muted-foreground mb-8">Please connect your wallet to view your dashboard</p>
-        </div>
-      </Layout>
-    );
-  }
 
   if (!crowdfundingContract) {
     return (
@@ -118,9 +120,15 @@ const Dashboard = () => {
             <h1 className="font-display text-3xl font-bold text-foreground mb-2">Dashboard</h1>
             <p className="text-muted-foreground font-mono text-sm">{address}</p>
           </div>
-          <Button variant="gradient" asChild>
-            <Link to="/create"><Plus className="w-4 h-4 mr-2" />New Campaign</Link>
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button variant="ghost" size="sm" onClick={handleRefresh} disabled={isRefreshing}>
+              <RefreshCw className={cn("w-4 h-4 mr-1", isRefreshing && "animate-spin")} />
+              Refresh
+            </Button>
+            <Button variant="gradient" asChild>
+              <Link to="/create"><Plus className="w-4 h-4 mr-2" />New Campaign</Link>
+            </Button>
+          </div>
         </div>
 
         {/* Stats Cards */}
