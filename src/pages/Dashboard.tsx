@@ -92,6 +92,11 @@ const Dashboard = () => {
     tokenSymbol: tokenSymbol,
   });
 
+  // Redirect to home if wallet not connected
+  if (!isConnected) {
+    return <Navigate to="/" replace />;
+  }
+
   if (!crowdfundingContract) {
     return (
       <Layout>
