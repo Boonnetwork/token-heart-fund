@@ -35,11 +35,6 @@ const Dashboard = () => {
   const [cancellingId, setCancellingId] = useState<number | null>(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
 
-  // Redirect to home if wallet not connected
-  if (!isConnected) {
-    return <Navigate to="/" replace />;
-  }
-
   useEffect(() => {
     const fetchUserData = async () => {
       if (!crowdfundingContract || !address) return;
