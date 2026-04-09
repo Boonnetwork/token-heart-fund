@@ -10,7 +10,7 @@ import { Separator } from '@/components/ui/separator';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useWallet } from '@/contexts/WalletContext';
 import { useContracts } from '@/contexts/ContractContext';
-import { useCrowdfunding, CampaignData, DonationData } from '@/hooks/useCrowdfunding';
+import { useCrowdfunding, CampaignData, DonationData, ClaimEventData } from '@/hooks/useCrowdfunding';
 import { ShareButtons } from '@/components/ShareButtons';
 import { 
   ArrowLeft, 
@@ -25,12 +25,13 @@ import {
   XCircle,
   Loader2,
   Copy,
-  ImageOff
+  ImageOff,
+  RefreshCw,
+  BadgeCheck
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 
-// Dynamic quick-select amounts based on goal
 const getQuickSelectAmounts = (goalAmount: number): number[] => {
   if (goalAmount >= 100000) return [1000, 5000, 10000];
   if (goalAmount >= 10000) return [100, 500, 1000];
@@ -44,62 +45,74 @@ const CampaignDetail = () => {
   const navigate = useNavigate();
   const { isConnected, address } = useWallet();
   const { tokenBalance, tokenSymbol, crowdfundingContract, refreshTokenBalance } = useContracts();
-  const { getCampaign, getCampaignDonations, getDonorContribution, donate, claimFunds, claimRefund } = useCrowdfunding();
+  const { getCampaign, getCampaignDonations, getClaimEvent, getDonorContribution, donate, claimFunds, claimRefund } = useCrowdfunding();
   
   const [campaign, setCampaign] = useState<CampaignData | null>(null);
   const [donations, setDonations] = useState<DonationData[]>([]);
+  const [claimEvent, setClaimEvent] = useState<ClaimEventData | null>(null);
   const [myContribution, setMyContribution] = useState('0');
   const [donateAmount, setDonateAmount] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const [isProcessing, setIsProcessing] = useState(false);
   const [imageError, setImageError] = useState(false);
   const [notFound, setNotFound] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+
+  const fetchData = async () => {
+    if (!id || !crowdfundingContract) return;
+    
+    const campaignId = parseInt(id);
+    if (isNaN(campaignId) || campaignId < 1) {
+      setNotFound(true);
+      setIsLoading(false);
+      return;
+    }
+    
+    const [campaignData, donationsData] = await Promise.all([
+      getCampaign(campaignId),
+      getCampaignDonations(campaignId),
+    ]);
+    
+    if (!campaignData) {
+      setNotFound(true);
+      setIsLoading(false);
+      return;
+    }
+    
+    setCampaign(campaignData);
+    setDonations(donationsData);
+    setImageError(false);
+    
+    // Fetch claim event if claimed
+    if (campaignData.claimed) {
+      const claimData = await getClaimEvent(campaignId);
+      setClaimEvent(claimData);
+    }
+    
+    if (address && campaignData) {
+      const contribution = await getDonorContribution(campaignId, address);
+      setMyContribution(contribution);
+    }
+    
+    setIsLoading(false);
+  };
 
   useEffect(() => {
-    const fetchData = async () => {
-      if (!id) return;
-      
-      setIsLoading(true);
-      setNotFound(false);
-      const campaignId = parseInt(id);
-      
-      // Validate campaign ID is a valid number
-      if (isNaN(campaignId) || campaignId < 1) {
-        setNotFound(true);
-        setIsLoading(false);
-        return;
-      }
-      
-      const [campaignData, donationsData] = await Promise.all([
-        getCampaign(campaignId),
-        getCampaignDonations(campaignId),
-      ]);
-      
-      if (!campaignData) {
-        setNotFound(true);
-        setIsLoading(false);
-        return;
-      }
-      
-      setCampaign(campaignData);
-      setDonations(donationsData);
-      setImageError(false);
-      
-      if (address && campaignData) {
-        const contribution = await getDonorContribution(campaignId, address);
-        setMyContribution(contribution);
-      }
-      
-      setIsLoading(false);
-    };
-
+    setIsLoading(true);
+    setNotFound(false);
     if (crowdfundingContract) {
       fetchData();
     } else if (id) {
-      // Contract not configured but we have an ID
       setIsLoading(false);
     }
-  }, [id, address, crowdfundingContract, getCampaign, getCampaignDonations, getDonorContribution]);
+  }, [id, address, crowdfundingContract]);
+
+  const handleRefresh = async () => {
+    setIsRefreshing(true);
+    await fetchData();
+    setIsRefreshing(false);
+    toast.success('Campaign data refreshed');
+  };
 
   const handleDonate = async () => {
     if (!campaign || !donateAmount || parseFloat(donateAmount) <= 0) {
@@ -112,11 +125,16 @@ const CampaignDetail = () => {
       return;
     }
 
+    const remaining = parseFloat(campaign.goalAmount) - parseFloat(campaign.raisedAmount);
+    if (remaining <= 0) {
+      toast.error('Campaign goal has already been reached');
+      return;
+    }
+
     setIsProcessing(true);
     const success = await donate(campaign.id, donateAmount);
     if (success) {
       setDonateAmount('');
-      // Refresh data
       const [updatedCampaign, updatedDonations] = await Promise.all([
         getCampaign(campaign.id),
         getCampaignDonations(campaign.id),
@@ -127,7 +145,6 @@ const CampaignDetail = () => {
         const contribution = await getDonorContribution(campaign.id, address);
         setMyContribution(contribution);
       }
-      // Token balance is now refreshed in the donate function
     }
     setIsProcessing(false);
   };
@@ -138,6 +155,10 @@ const CampaignDetail = () => {
     await claimFunds(campaign.id);
     const updatedCampaign = await getCampaign(campaign.id);
     setCampaign(updatedCampaign);
+    if (updatedCampaign?.claimed) {
+      const claimData = await getClaimEvent(campaign.id);
+      setClaimEvent(claimData);
+    }
     setIsProcessing(false);
   };
 
@@ -154,14 +175,14 @@ const CampaignDetail = () => {
     setIsProcessing(false);
   };
 
-  const copyAddress = (addr: string) => {
-    navigator.clipboard.writeText(addr);
-    toast.success('Address copied!');
+  const copyText = (text: string, label = 'Copied!') => {
+    navigator.clipboard.writeText(text);
+    toast.success(label);
   };
 
   const formatAddress = (addr: string) => `${addr.slice(0, 6)}...${addr.slice(-4)}`;
+  const formatTxHash = (hash: string) => `${hash.slice(0, 10)}...${hash.slice(-6)}`;
 
-  // Loading skeleton
   if (isLoading) {
     return (
       <Layout>
@@ -174,16 +195,6 @@ const CampaignDetail = () => {
                 <Skeleton className="h-10 w-3/4 mb-3" />
                 <Skeleton className="h-5 w-1/2" />
               </div>
-              <Card className="glass-card">
-                <CardHeader>
-                  <Skeleton className="h-6 w-1/3" />
-                </CardHeader>
-                <CardContent className="space-y-2">
-                  <Skeleton className="h-4 w-full" />
-                  <Skeleton className="h-4 w-full" />
-                  <Skeleton className="h-4 w-2/3" />
-                </CardContent>
-              </Card>
             </div>
             <div>
               <Card className="glass-card">
@@ -191,10 +202,6 @@ const CampaignDetail = () => {
                   <Skeleton className="h-10 w-1/2" />
                   <Skeleton className="h-4 w-2/3" />
                   <Skeleton className="h-3 w-full" />
-                  <div className="grid grid-cols-2 gap-4">
-                    <Skeleton className="h-20" />
-                    <Skeleton className="h-20" />
-                  </div>
                 </CardContent>
               </Card>
             </div>
@@ -204,16 +211,13 @@ const CampaignDetail = () => {
     );
   }
 
-  // Not found state (404)
   if (notFound || !campaign) {
     return (
       <Layout>
         <div className="container mx-auto px-4 py-20 text-center">
           <AlertTriangle className="w-16 h-16 text-destructive mx-auto mb-4" />
           <h1 className="font-display text-2xl font-bold text-foreground mb-2">Campaign Not Found</h1>
-          <p className="text-muted-foreground mb-6">
-            Campaign #{id} doesn't exist or has been removed.
-          </p>
+          <p className="text-muted-foreground mb-6">Campaign #{id} doesn't exist or has been removed.</p>
           <Button variant="outline" asChild>
             <Link to="/campaigns"><ArrowLeft className="w-4 h-4 mr-2" />Browse Campaigns</Link>
           </Button>
@@ -226,28 +230,40 @@ const CampaignDetail = () => {
   const daysLeft = Math.max(0, Math.ceil((campaign.deadline.getTime() - Date.now()) / (1000 * 60 * 60 * 24)));
   const isEnded = campaign.deadline.getTime() < Date.now();
   const isCreator = address?.toLowerCase() === campaign.creator.toLowerCase();
-  const canClaimFunds = isCreator && isEnded && campaign.status === 'completed' && !campaign.claimed;
+  const goalReached = parseFloat(campaign.raisedAmount) >= parseFloat(campaign.goalAmount);
+  const remainingToGoal = Math.max(0, parseFloat(campaign.goalAmount) - parseFloat(campaign.raisedAmount));
+
+  // Allow early claim if goal reached (even before deadline), as long as not already claimed
+  const canClaimFunds = isCreator && goalReached && !campaign.claimed && !campaign.cancelled;
   const canClaimRefund = parseFloat(myContribution) > 0 && isEnded && campaign.status === 'failed';
-  const canDonate = campaign.status === 'active' && !isEnded;
+  // Block donations if goal reached or deadline passed
+  const canDonate = campaign.status === 'active' && !isEnded && !goalReached;
   const quickSelectAmounts = getQuickSelectAmounts(parseFloat(campaign.goalAmount));
 
   const statusConfig = {
     active: { label: 'Active', icon: Clock, className: 'bg-emerald/20 text-emerald border-emerald/30' },
-    completed: { label: 'Funded', icon: CheckCircle, className: 'bg-primary/20 text-primary border-primary/30' },
+    completed: { label: campaign.claimed ? 'Funds Released' : 'Goal Reached', icon: CheckCircle, className: 'bg-primary/20 text-primary border-primary/30' },
     failed: { label: 'Failed', icon: XCircle, className: 'bg-destructive/20 text-destructive border-destructive/30' },
     cancelled: { label: 'Cancelled', icon: XCircle, className: 'bg-muted text-muted-foreground border-border' },
   };
 
   const StatusIcon = statusConfig[campaign.status].icon;
   const fallbackImage = 'https://images.unsplash.com/photo-1639762681485-074b7f938ba0?w=800';
+  const campaignUrl = `${window.location.origin}/campaign/${campaign.id}`;
 
   return (
     <Layout>
       <div className="container mx-auto px-4 py-8">
-        {/* Back Button */}
-        <Button variant="ghost" className="mb-6" asChild>
-          <Link to="/campaigns"><ArrowLeft className="w-4 h-4 mr-2" />Back to Campaigns</Link>
-        </Button>
+        {/* Back & Refresh */}
+        <div className="flex items-center justify-between mb-6">
+          <Button variant="ghost" asChild>
+            <Link to="/campaigns"><ArrowLeft className="w-4 h-4 mr-2" />Back to Campaigns</Link>
+          </Button>
+          <Button variant="ghost" size="sm" onClick={handleRefresh} disabled={isRefreshing}>
+            <RefreshCw className={cn("w-4 h-4 mr-1", isRefreshing && "animate-spin")} />
+            Refresh
+          </Button>
+        </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Main Content */}
@@ -285,7 +301,7 @@ const CampaignDetail = () => {
                 <div className="flex items-center gap-2 text-muted-foreground">
                   <span>Created by</span>
                   <button 
-                    onClick={() => copyAddress(campaign.creator)}
+                    onClick={() => copyText(campaign.creator, 'Address copied!')}
                     className="font-mono text-primary hover:underline flex items-center gap-1"
                   >
                     {formatAddress(campaign.creator)}
@@ -300,9 +316,40 @@ const CampaignDetail = () => {
                     <ExternalLink className="w-4 h-4" />
                   </a>
                 </div>
-                <ShareButtons title={campaign.title} />
               </div>
+              <ShareButtons title={campaign.title} url={campaignUrl} className="mt-3" />
             </div>
+
+            {/* Funds Released Indicator */}
+            {campaign.claimed && claimEvent && (
+              <Card className="border-primary/30 bg-primary/5">
+                <CardContent className="py-4">
+                  <div className="flex items-center gap-3">
+                    <BadgeCheck className="w-6 h-6 text-primary flex-shrink-0" />
+                    <div className="flex-1 min-w-0">
+                      <p className="font-semibold text-foreground">Funds Released</p>
+                      <p className="text-sm text-muted-foreground">
+                        {parseFloat(claimEvent.amount).toLocaleString()} {tokenSymbol} claimed (Fee: {parseFloat(claimEvent.platformFee).toLocaleString()} {tokenSymbol})
+                      </p>
+                      <div className="flex items-center gap-2 mt-1">
+                        <a
+                          href={`https://testnet.bscscan.com/tx/${claimEvent.txHash}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-xs text-primary hover:underline font-mono flex items-center gap-1"
+                        >
+                          Tx: {formatTxHash(claimEvent.txHash)}
+                          <ExternalLink className="w-3 h-3" />
+                        </a>
+                        <button onClick={() => copyText(claimEvent.txHash, 'Tx hash copied!')} className="text-muted-foreground hover:text-foreground">
+                          <Copy className="w-3 h-3" />
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
 
             {/* Description */}
             <Card className="glass-card">
@@ -326,19 +373,56 @@ const CampaignDetail = () => {
                 {donations.length === 0 ? (
                   <p className="text-muted-foreground text-center py-4">No donations yet. Be the first!</p>
                 ) : (
-                  <div className="space-y-3 max-h-80 overflow-y-auto">
+                  <div className="space-y-3 max-h-96 overflow-y-auto">
                     {donations.slice().reverse().slice(0, 20).map((donation, index) => (
-                      <div key={index} className="flex items-center justify-between py-2 border-b border-border/50 last:border-0">
-                        <div className="flex items-center gap-2">
-                          <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center">
+                      <div key={index} className="flex flex-col sm:flex-row sm:items-center justify-between py-3 border-b border-border/50 last:border-0 gap-2">
+                        <div className="flex items-start gap-3">
+                          <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center flex-shrink-0 mt-0.5">
                             <Heart className="w-4 h-4 text-primary" />
                           </div>
-                          <div>
-                            <p className="font-mono text-sm text-foreground">{formatAddress(donation.donor)}</p>
-                            <p className="text-xs text-muted-foreground">{donation.timestamp.toLocaleDateString()}</p>
+                          <div className="min-w-0">
+                            {/* Donor address */}
+                            <div className="flex items-center gap-1.5">
+                              <a
+                                href={`https://testnet.bscscan.com/address/${donation.donor}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="font-mono text-sm text-foreground hover:text-primary hover:underline"
+                              >
+                                {formatAddress(donation.donor)}
+                              </a>
+                              <button onClick={() => copyText(donation.donor, 'Address copied!')} className="text-muted-foreground hover:text-foreground">
+                                <Copy className="w-3 h-3" />
+                              </button>
+                              <a
+                                href={`https://testnet.bscscan.com/address/${donation.donor}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-muted-foreground hover:text-primary"
+                              >
+                                <ExternalLink className="w-3 h-3" />
+                              </a>
+                            </div>
+                            {/* Tx hash */}
+                            {donation.txHash && (
+                              <div className="flex items-center gap-1.5 mt-0.5">
+                                <a
+                                  href={`https://testnet.bscscan.com/tx/${donation.txHash}`}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="font-mono text-xs text-primary/70 hover:text-primary hover:underline"
+                                >
+                                  Tx: {formatTxHash(donation.txHash)}
+                                </a>
+                                <button onClick={() => copyText(donation.txHash!, 'Tx hash copied!')} className="text-muted-foreground hover:text-foreground">
+                                  <Copy className="w-2.5 h-2.5" />
+                                </button>
+                              </div>
+                            )}
+                            <p className="text-xs text-muted-foreground mt-0.5">{donation.timestamp.toLocaleDateString()} {donation.timestamp.toLocaleTimeString()}</p>
                           </div>
                         </div>
-                        <span className="font-semibold text-primary">{parseFloat(donation.amount).toLocaleString()} {tokenSymbol}</span>
+                        <span className="font-semibold text-primary text-sm sm:text-base pl-11 sm:pl-0">{parseFloat(donation.amount).toLocaleString()} {tokenSymbol}</span>
                       </div>
                     ))}
                   </div>
@@ -349,7 +433,6 @@ const CampaignDetail = () => {
 
           {/* Sidebar */}
           <div className="space-y-6">
-            {/* Progress Card */}
             <Card className="glass-card sticky top-24">
               <CardContent className="pt-6 space-y-6">
                 {/* Amount Raised */}
@@ -363,6 +446,16 @@ const CampaignDetail = () => {
                   <p className="text-sm text-muted-foreground">
                     raised of {parseFloat(campaign.goalAmount).toLocaleString()} {tokenSymbol} goal
                   </p>
+                  {goalReached && (
+                    <Badge className="mt-2 bg-emerald/20 text-emerald border-emerald/30">
+                      <CheckCircle className="w-3 h-3 mr-1" /> Goal Reached!
+                    </Badge>
+                  )}
+                  {!goalReached && canDonate && (
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Remaining: {remainingToGoal.toLocaleString()} {tokenSymbol}
+                    </p>
+                  )}
                 </div>
 
                 {/* Progress Bar */}
@@ -398,9 +491,18 @@ const CampaignDetail = () => {
                         <div className="flex gap-2">
                           <Input
                             type="number"
-                            placeholder="Amount"
+                            placeholder={`Max: ${remainingToGoal.toLocaleString()}`}
                             value={donateAmount}
-                            onChange={(e) => setDonateAmount(e.target.value)}
+                            onChange={(e) => {
+                              const val = parseFloat(e.target.value);
+                              if (val > remainingToGoal) {
+                                setDonateAmount(remainingToGoal.toString());
+                                toast.info(`Capped at ${remainingToGoal.toLocaleString()} ${tokenSymbol} (remaining to goal)`);
+                              } else {
+                                setDonateAmount(e.target.value);
+                              }
+                            }}
+                            max={remainingToGoal}
                             className="flex-1"
                           />
                           <span className="flex items-center text-muted-foreground text-sm">{tokenSymbol}</span>
@@ -412,7 +514,10 @@ const CampaignDetail = () => {
                               variant="outline" 
                               size="sm"
                               className="flex-1"
-                              onClick={() => setDonateAmount(amount.toString())}
+                              onClick={() => {
+                                const capped = Math.min(amount, remainingToGoal);
+                                setDonateAmount(capped.toString());
+                              }}
                             >
                               {amount.toLocaleString()}
                             </Button>
@@ -431,6 +536,14 @@ const CampaignDetail = () => {
                       </div>
                     )}
 
+                    {goalReached && !canClaimFunds && !campaign.claimed && (
+                      <div className="text-center py-4">
+                        <CheckCircle className="w-8 h-8 text-emerald mx-auto mb-2" />
+                        <p className="text-foreground font-semibold">Goal Reached!</p>
+                        <p className="text-sm text-muted-foreground">This campaign is no longer accepting donations.</p>
+                      </div>
+                    )}
+
                     {/* My Contribution */}
                     {parseFloat(myContribution) > 0 && (
                       <div className="p-3 rounded-lg bg-primary/10 border border-primary/20">
@@ -439,12 +552,20 @@ const CampaignDetail = () => {
                       </div>
                     )}
 
-                    {/* Action Buttons */}
+                    {/* Claim Funds - available when goal is reached (even before deadline) */}
                     {canClaimFunds && (
                       <Button variant="gradient" className="w-full" onClick={handleClaimFunds} disabled={isProcessing}>
                         {isProcessing ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <CheckCircle className="w-4 h-4 mr-2" />}
                         Claim Funds
                       </Button>
+                    )}
+
+                    {/* Funds already claimed */}
+                    {campaign.claimed && (
+                      <div className="text-center py-3">
+                        <BadgeCheck className="w-8 h-8 text-primary mx-auto mb-2" />
+                        <p className="text-foreground font-semibold">Funds Released</p>
+                      </div>
                     )}
 
                     {canClaimRefund && (
@@ -454,7 +575,7 @@ const CampaignDetail = () => {
                       </Button>
                     )}
 
-                    {!canDonate && !canClaimFunds && !canClaimRefund && (
+                    {!canDonate && !canClaimFunds && !canClaimRefund && !goalReached && !campaign.claimed && (
                       <div className="text-center py-4">
                         <p className="text-muted-foreground">This campaign is no longer accepting donations.</p>
                       </div>

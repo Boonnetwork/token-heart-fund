@@ -30,10 +30,12 @@ const TOKEN_ABI =
 // New CrowdFunding ABI with all features
 const CROWDFUNDING_ABI = '[{"type":"constructor","inputs":[{"name":"_CFI","type":"address","internalType":"address"}],"stateMutability":"nonpayable"},{"name":"OwnableInvalidOwner","type":"error","inputs":[{"name":"owner","type":"address","internalType":"address"}]},{"name":"OwnableUnauthorizedAccount","type":"error","inputs":[{"name":"account","type":"address","internalType":"address"}]},{"name":"SafeERC20FailedOperation","type":"error","inputs":[{"name":"token","type":"address","internalType":"address"}]},{"name":"CampaignCancelled","type":"event","inputs":[{"name":"campaignId","type":"uint256","indexed":true,"internalType":"uint256"},{"name":"creator","type":"address","indexed":true,"internalType":"address"}],"anonymous":false},{"name":"CampaignCreated","type":"event","inputs":[{"name":"campaignId","type":"uint256","indexed":true,"internalType":"uint256"},{"name":"creator","type":"address","indexed":true,"internalType":"address"},{"name":"title","type":"string","indexed":false,"internalType":"string"},{"name":"goalAmount","type":"uint256","indexed":false,"internalType":"uint256"},{"name":"deadline","type":"uint256","indexed":false,"internalType":"uint256"}],"anonymous":false},{"name":"DonationMade","type":"event","inputs":[{"name":"campaignId","type":"uint256","indexed":true,"internalType":"uint256"},{"name":"donor","type":"address","indexed":true,"internalType":"address"},{"name":"amount","type":"uint256","indexed":false,"internalType":"uint256"},{"name":"totalRaised","type":"uint256","indexed":false,"internalType":"uint256"}],"anonymous":false},{"name":"FundsClaimed","type":"event","inputs":[{"name":"campaignId","type":"uint256","indexed":true,"internalType":"uint256"},{"name":"creator","type":"address","indexed":true,"internalType":"address"},{"name":"amount","type":"uint256","indexed":false,"internalType":"uint256"},{"name":"platformFee","type":"uint256","indexed":false,"internalType":"uint256"}],"anonymous":false},{"name":"OwnershipTransferred","type":"event","inputs":[{"name":"previousOwner","type":"address","indexed":true,"internalType":"address"},{"name":"newOwner","type":"address","indexed":true,"internalType":"address"}],"anonymous":false},{"name":"PlatformFeeUpdated","type":"event","inputs":[{"name":"oldFee","type":"uint256","indexed":false,"internalType":"uint256"},{"name":"newFee","type":"uint256","indexed":false,"internalType":"uint256"}],"anonymous":false},{"name":"RefundClaimed","type":"event","inputs":[{"name":"campaignId","type":"uint256","indexed":true,"internalType":"uint256"},{"name":"donor","type":"address","indexed":true,"internalType":"address"},{"name":"amount","type":"uint256","indexed":false,"internalType":"uint256"}],"anonymous":false},{"name":"BASIS_POINTS","type":"function","inputs":[],"outputs":[{"name":"","type":"uint256","internalType":"uint256"}],"stateMutability":"view"},{"name":"CFI","type":"function","inputs":[],"outputs":[{"name":"","type":"address","internalType":"contract IERC20"}],"stateMutability":"view"},{"name":"MAX_FEE","type":"function","inputs":[],"outputs":[{"name":"","type":"uint256","internalType":"uint256"}],"stateMutability":"view"},{"name":"campaignCount","type":"function","inputs":[],"outputs":[{"name":"","type":"uint256","internalType":"uint256"}],"stateMutability":"view"},{"name":"campaignDonations","type":"function","inputs":[{"name":"","type":"uint256","internalType":"uint256"},{"name":"","type":"uint256","internalType":"uint256"}],"outputs":[{"name":"donor","type":"address","internalType":"address"},{"name":"amount","type":"uint256","internalType":"uint256"},{"name":"timestamp","type":"uint256","internalType":"uint256"}],"stateMutability":"view"},{"name":"campaigns","type":"function","inputs":[{"name":"","type":"uint256","internalType":"uint256"}],"outputs":[{"name":"id","type":"uint256","internalType":"uint256"},{"name":"creator","type":"address","internalType":"address"},{"name":"title","type":"string","internalType":"string"},{"name":"description","type":"string","internalType":"string"},{"name":"imageUrl","type":"string","internalType":"string"},{"name":"goalAmount","type":"uint256","internalType":"uint256"},{"name":"raisedAmount","type":"uint256","internalType":"uint256"},{"name":"deadline","type":"uint256","internalType":"uint256"},{"name":"createdAt","type":"uint256","internalType":"uint256"},{"name":"claimed","type":"bool","internalType":"bool"},{"name":"cancelled","type":"bool","internalType":"bool"},{"name":"donorCount","type":"uint256","internalType":"uint256"}],"stateMutability":"view"},{"name":"cancelCampaign","type":"function","inputs":[{"name":"_campaignId","type":"uint256","internalType":"uint256"}],"outputs":[],"stateMutability":"nonpayable"},{"name":"claimFunds","type":"function","inputs":[{"name":"_campaignId","type":"uint256","internalType":"uint256"}],"outputs":[],"stateMutability":"nonpayable"},{"name":"claimRefund","type":"function","inputs":[{"name":"_campaignId","type":"uint256","internalType":"uint256"}],"outputs":[],"stateMutability":"nonpayable"},{"name":"createCampaign","type":"function","inputs":[{"name":"_title","type":"string","internalType":"string"},{"name":"_description","type":"string","internalType":"string"},{"name":"_imageUrl","type":"string","internalType":"string"},{"name":"_goalAmount","type":"uint256","internalType":"uint256"},{"name":"_durationDays","type":"uint256","internalType":"uint256"}],"outputs":[{"name":"campaignId","type":"uint256","internalType":"uint256"}],"stateMutability":"nonpayable"},{"name":"creatorCampaigns","type":"function","inputs":[{"name":"","type":"address","internalType":"address"},{"name":"","type":"uint256","internalType":"uint256"}],"outputs":[{"name":"","type":"uint256","internalType":"uint256"}],"stateMutability":"view"},{"name":"donate","type":"function","inputs":[{"name":"_campaignId","type":"uint256","internalType":"uint256"},{"name":"_amount","type":"uint256","internalType":"uint256"}],"outputs":[],"stateMutability":"nonpayable"},{"name":"donorCampaigns","type":"function","inputs":[{"name":"","type":"address","internalType":"address"},{"name":"","type":"uint256","internalType":"uint256"}],"outputs":[{"name":"","type":"uint256","internalType":"uint256"}],"stateMutability":"view"},{"name":"donorContributions","type":"function","inputs":[{"name":"","type":"uint256","internalType":"uint256"},{"name":"","type":"address","internalType":"address"}],"outputs":[{"name":"","type":"uint256","internalType":"uint256"}],"stateMutability":"view"},{"name":"emergencyWithdraw","type":"function","inputs":[{"name":"_token","type":"address","internalType":"address"},{"name":"_amount","type":"uint256","internalType":"uint256"}],"outputs":[],"stateMutability":"nonpayable"},{"name":"getActiveCampaigns","type":"function","inputs":[{"name":"_offset","type":"uint256","internalType":"uint256"},{"name":"_limit","type":"uint256","internalType":"uint256"}],"outputs":[{"name":"campaignList","type":"tuple[]","components":[{"name":"id","type":"uint256","internalType":"uint256"},{"name":"creator","type":"address","internalType":"address"},{"name":"title","type":"string","internalType":"string"},{"name":"description","type":"string","internalType":"string"},{"name":"imageUrl","type":"string","internalType":"string"},{"name":"goalAmount","type":"uint256","internalType":"uint256"},{"name":"raisedAmount","type":"uint256","internalType":"uint256"},{"name":"deadline","type":"uint256","internalType":"uint256"},{"name":"createdAt","type":"uint256","internalType":"uint256"},{"name":"claimed","type":"bool","internalType":"bool"},{"name":"cancelled","type":"bool","internalType":"bool"},{"name":"donorCount","type":"uint256","internalType":"uint256"}],"internalType":"struct CrowdFunding.Campaign[]"}],"stateMutability":"view"},{"name":"getCampaign","type":"function","inputs":[{"name":"_campaignId","type":"uint256","internalType":"uint256"}],"outputs":[{"name":"","type":"tuple","components":[{"name":"id","type":"uint256","internalType":"uint256"},{"name":"creator","type":"address","internalType":"address"},{"name":"title","type":"string","internalType":"string"},{"name":"description","type":"string","internalType":"string"},{"name":"imageUrl","type":"string","internalType":"string"},{"name":"goalAmount","type":"uint256","internalType":"uint256"},{"name":"raisedAmount","type":"uint256","internalType":"uint256"},{"name":"deadline","type":"uint256","internalType":"uint256"},{"name":"createdAt","type":"uint256","internalType":"uint256"},{"name":"claimed","type":"bool","internalType":"bool"},{"name":"cancelled","type":"bool","internalType":"bool"},{"name":"donorCount","type":"uint256","internalType":"uint256"}],"internalType":"struct CrowdFunding.Campaign"}],"stateMutability":"view"},{"name":"getCampaignDonations","type":"function","inputs":[{"name":"_campaignId","type":"uint256","internalType":"uint256"}],"outputs":[{"name":"","type":"tuple[]","components":[{"name":"donor","type":"address","internalType":"address"},{"name":"amount","type":"uint256","internalType":"uint256"},{"name":"timestamp","type":"uint256","internalType":"uint256"}],"internalType":"struct CrowdFunding.Donation[]"}],"stateMutability":"view"},{"name":"getCampaignsByCreator","type":"function","inputs":[{"name":"_creator","type":"address","internalType":"address"}],"outputs":[{"name":"","type":"uint256[]","internalType":"uint256[]"}],"stateMutability":"view"},{"name":"getCampaignsByDonor","type":"function","inputs":[{"name":"_donor","type":"address","internalType":"address"}],"outputs":[{"name":"","type":"uint256[]","internalType":"uint256[]"}],"stateMutability":"view"},{"name":"getDonorContribution","type":"function","inputs":[{"name":"_campaignId","type":"uint256","internalType":"uint256"},{"name":"_donor","type":"address","internalType":"address"}],"outputs":[{"name":"","type":"uint256","internalType":"uint256"}],"stateMutability":"view"},{"name":"isCampaignActive","type":"function","inputs":[{"name":"_campaignId","type":"uint256","internalType":"uint256"}],"outputs":[{"name":"","type":"bool","internalType":"bool"}],"stateMutability":"view"},{"name":"owner","type":"function","inputs":[],"outputs":[{"name":"","type":"address","internalType":"address"}],"stateMutability":"view"},{"name":"platformFeePercent","type":"function","inputs":[],"outputs":[{"name":"","type":"uint256","internalType":"uint256"}],"stateMutability":"view"},{"name":"renounceOwnership","type":"function","inputs":[],"outputs":[],"stateMutability":"nonpayable"},{"name":"transferOwnership","type":"function","inputs":[{"name":"newOwner","type":"address","internalType":"address"}],"outputs":[],"stateMutability":"nonpayable"},{"name":"updatePlatformFee","type":"function","inputs":[{"name":"_newFeePercent","type":"uint256","internalType":"uint256"}],"outputs":[],"stateMutability":"nonpayable"}]';
 
+const BSC_TESTNET_RPC = 'https://data-seed-prebsc-1-s1.bnbchain.org:8545';
+
 const defaultSettings: ContractSettings = {
-  tokenAddress: "0x732e22E963C914756Bf2B3401249A43d733A6A3b", // CFI Token on BSC Testnet - UPDATE THIS
+  tokenAddress: "0x732e22E963C914756Bf2B3401249A43d733A6A3b",
   tokenABI: TOKEN_ABI,
-  crowdfundingAddress: "0x3Ea8169c11A4B7E49BCe65B9403339Ae46Dea212", // CrowdFunding contract on BSC Testnet - UPDATE THIS
+  crowdfundingAddress: "0x3Ea8169c11A4B7E49BCe65B9403339Ae46Dea212",
   crowdfundingABI: CROWDFUNDING_ABI,
 };
 
@@ -61,9 +63,9 @@ export const ContractProvider: React.FC<{ children: ReactNode }> = ({ children }
     }
   }, []);
 
-  // Initialize contracts when settings or signer changes
+  // Initialize contracts - with signer when connected, read-only provider when not
   useEffect(() => {
-    if (!signer || !settings.tokenAddress || !settings.crowdfundingAddress) {
+    if (!settings.tokenAddress || !settings.crowdfundingAddress) {
       setTokenContract(null);
       setCrowdfundingContract(null);
       return;
@@ -73,21 +75,21 @@ export const ContractProvider: React.FC<{ children: ReactNode }> = ({ children }
       const tokenAbi = JSON.parse(settings.tokenABI);
       const crowdAbi = JSON.parse(settings.crowdfundingABI);
 
-      if (tokenAbi.length > 0 && settings.tokenAddress) {
-        const token = new ethers.Contract(settings.tokenAddress, tokenAbi, signer);
-        setTokenContract(token);
-      }
+      // Use signer if available, otherwise use read-only public provider
+      const contractRunner = signer || new ethers.providers.JsonRpcProvider(BSC_TESTNET_RPC);
 
-      if (crowdAbi.length > 0 && settings.crowdfundingAddress) {
-        const crowd = new ethers.Contract(settings.crowdfundingAddress, crowdAbi, signer);
-        setCrowdfundingContract(crowd);
+      if (tokenAbi.length > 0) {
+        setTokenContract(new ethers.Contract(settings.tokenAddress, tokenAbi, contractRunner));
+      }
+      if (crowdAbi.length > 0) {
+        setCrowdfundingContract(new ethers.Contract(settings.crowdfundingAddress, crowdAbi, contractRunner));
       }
     } catch (error) {
       console.error("Error initializing contracts:", error);
     }
   }, [signer, settings]);
 
-  // Fetch token info
+  // Fetch token info when connected
   useEffect(() => {
     const fetchTokenInfo = async () => {
       if (!tokenContract || !address) return;
@@ -111,6 +113,24 @@ export const ContractProvider: React.FC<{ children: ReactNode }> = ({ children }
     };
 
     fetchTokenInfo();
+  }, [tokenContract, address]);
+
+  // Also fetch token symbol/decimals for read-only mode (no address)
+  useEffect(() => {
+    const fetchReadOnlyTokenInfo = async () => {
+      if (!tokenContract || address) return; // skip if address is set (handled above)
+      try {
+        const [symbol, decimals] = await Promise.all([
+          tokenContract.symbol(),
+          tokenContract.decimals(),
+        ]);
+        setTokenSymbol(symbol);
+        setTokenDecimals(decimals);
+      } catch (error) {
+        console.error("Error fetching read-only token info:", error);
+      }
+    };
+    fetchReadOnlyTokenInfo();
   }, [tokenContract, address]);
 
   const updateSettings = (newSettings: ContractSettings) => {
