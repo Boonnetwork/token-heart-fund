@@ -97,12 +97,48 @@ export const useCrowdfunding = () => {
         crowdfundingContract.queryFilter(crowdfundingContract.filters.DonationMade(id)).catch(() => []),
       ]);
       
-      return donations.map((d: any, index: number) => ({
-        donor: d.donor,
-        amount: ethers.utils.formatUnits(d.amount, tokenDecimals),
-        timestamp: new Date(d.timestamp.toNumber() * 1000),
-        txHash: events[index]?.transactionHash || undefined,
+      // Build a map of events by matching donor+amount+order for reliable tx hash lookup
+      const eventList = events.map((ev: any) => ({
+        donor: ev.args?.donor?.toLowerCase(),
+        amount: ev.args?.amount?.toString(),
+        txHash: ev.transactionHash,
       }));
+      
+      // Track usage of events to handle multiple donations from same donor
+      const usedEvents = new Set<number>();
+      
+      return donations.map((d: any) => {
+        const donorLower = d.donor.toLowerCase();
+        const amountStr = d.amount.toString();
+        
+        // Find matching event that hasn't been used yet
+        let txHash: string | undefined;
+        for (let i = 0; i < eventList.length; i++) {
+          if (!usedEvents.has(i) && eventList[i].donor === donorLower && eventList[i].amount === amountStr) {
+            txHash = eventList[i].txHash;
+            usedEvents.add(i);
+            break;
+          }
+        }
+        
+        // Fallback: match by donor only if exact match not found
+        if (!txHash) {
+          for (let i = 0; i < eventList.length; i++) {
+            if (!usedEvents.has(i) && eventList[i].donor === donorLower) {
+              txHash = eventList[i].txHash;
+              usedEvents.add(i);
+              break;
+            }
+          }
+        }
+        
+        return {
+          donor: d.donor,
+          amount: ethers.utils.formatUnits(d.amount, tokenDecimals),
+          timestamp: new Date(d.timestamp.toNumber() * 1000),
+          txHash,
+        };
+      });
     } catch { return []; }
   }, [crowdfundingContract, tokenDecimals]);
 
