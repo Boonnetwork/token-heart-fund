@@ -56,7 +56,7 @@ const Index = () => {
                 Fund the Future with{' '}
                 <span className="gradient-text text-glow">Blockchain</span>
               </h1>
-              <p className="text-lg md:text-xl text-muted-foreground max-w-xl animate-fade-in-up" style={{ animationDelay: '0.2s' }}>
+              <p className="text-lg md:text-xl text-muted-foreground max-w-xl mx-auto animate-fade-in-up" style={{ animationDelay: '0.2s' }}>
                 Decentralized crowdfunding platform where every donation is transparent, 
                 secure, and powered by smart contracts.
               </p>
