@@ -60,7 +60,7 @@ const Index = () => {
                 Decentralized crowdfunding platform where every donation is transparent, 
                 secure, and powered by smart contracts.
               </p>
-              <div className="flex flex-col sm:flex-row gap-4 animate-fade-in-up" style={{ animationDelay: '0.3s' }}>
+              <div className="flex flex-col sm:flex-row gap-4 justify-center animate-fade-in-up" style={{ animationDelay: '0.3s' }}>
                 <Button variant="gradient" size="xl" asChild>
                   <Link to="/campaigns">
                     <Rocket className="w-5 h-5" />
@@ -73,29 +73,6 @@ const Index = () => {
                     <ArrowRight className="w-5 h-5" />
                   </Link>
                 </Button>
-              </div>
-            </div>
-            <div className="hidden lg:block relative">
-              <div className="relative rounded-2xl overflow-hidden aspect-square max-w-md mx-auto">
-                <img
-                  src="https://images.unsplash.com/photo-1639762681485-074b7f938ba0?w=600"
-                  alt="Blockchain crowdfunding"
-                  className="w-full h-full object-cover rounded-2xl"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-background/80 via-transparent to-transparent" />
-                <div className="absolute bottom-6 left-6 right-6">
-                  <div className="glass-card p-4 rounded-xl">
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-full bg-emerald/20 flex items-center justify-center">
-                        <Zap className="w-5 h-5 text-emerald" />
-                      </div>
-                      <div>
-                        <p className="text-sm font-semibold text-foreground">Transparent & Secure</p>
-                        <p className="text-xs text-muted-foreground">Every transaction on-chain</p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
               </div>
             </div>
           </div>

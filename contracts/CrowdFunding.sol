@@ -9,7 +9,15 @@ import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 /**
  * @title CrowdFunding
  * @dev A decentralized crowdfunding platform using CFI token on BSC
- * @notice This contract allows users to create and fund campaigns using the CrowdFi (CFI) token
+ * @notice This contract allows users to create and fund campaigns using the CrowdFi (CFI) token.
+ *
+ * Key features:
+ * - Donations are capped at the remaining goal amount; excess is returned to the donor
+ * - No donations accepted once the goal is reached or the deadline has passed
+ * - Creators can claim funds early once the goal is met (before deadline)
+ * - 2.5% platform fee (configurable, max 10%) deducted on claim
+ * - Full refunds for donors if campaign fails or is cancelled
+ * - ReentrancyGuard on all fund-moving functions
  */
 contract CrowdFunding is Ownable, ReentrancyGuard {
     using SafeERC20 for IERC20;
@@ -102,14 +110,6 @@ contract CrowdFunding is Ownable, ReentrancyGuard {
         _;
     }
 
-    modifier campaignActive(uint256 _campaignId) {
-        Campaign storage campaign = campaigns[_campaignId];
-        require(!campaign.cancelled, "Campaign cancelled");
-        require(!campaign.claimed, "Funds already claimed");
-        require(block.timestamp < campaign.deadline, "Campaign ended");
-        _;
-    }
-
     // ============ Constructor ============
 
     /**
@@ -177,7 +177,9 @@ contract CrowdFunding is Ownable, ReentrancyGuard {
 
     /**
      * @notice Donate CFI tokens to a campaign
-     * @dev Requires prior token approval
+     * @dev Requires prior token approval. Caps donation at remaining goal amount
+     *      and returns any excess to the donor. Blocks donations once goal is reached
+     *      or deadline has passed.
      * @param _campaignId ID of the campaign to donate to
      * @param _amount Amount of CFI tokens to donate (in wei)
      */
@@ -185,14 +187,26 @@ contract CrowdFunding is Ownable, ReentrancyGuard {
         external 
         nonReentrant 
         campaignExists(_campaignId) 
-        campaignActive(_campaignId) 
     {
         require(_amount > 0, "Amount must be > 0");
         
         Campaign storage campaign = campaigns[_campaignId];
 
-        // Transfer tokens from donor to contract
-        cfiToken.safeTransferFrom(msg.sender, address(this), _amount);
+        // Block donations if cancelled, claimed, deadline passed, or goal already reached
+        require(!campaign.cancelled, "Campaign cancelled");
+        require(!campaign.claimed, "Funds already claimed");
+        require(block.timestamp < campaign.deadline, "Campaign ended");
+        require(campaign.raisedAmount < campaign.goalAmount, "Goal already reached");
+
+        // Cap donation at remaining amount needed
+        uint256 remaining = campaign.goalAmount - campaign.raisedAmount;
+        uint256 actualAmount = _amount > remaining ? remaining : _amount;
+
+        // Transfer the actual (capped) amount from donor to contract
+        cfiToken.safeTransferFrom(msg.sender, address(this), actualAmount);
+
+        // If user sent approval for more than needed, only actualAmount is transferred
+        // The excess stays with the donor (not transferred at all)
 
         // Track if this is a new donor
         if (donorContributions[_campaignId][msg.sender] == 0) {
@@ -201,21 +215,22 @@ contract CrowdFunding is Ownable, ReentrancyGuard {
         }
 
         // Update donation records
-        donorContributions[_campaignId][msg.sender] += _amount;
-        campaign.raisedAmount += _amount;
+        donorContributions[_campaignId][msg.sender] += actualAmount;
+        campaign.raisedAmount += actualAmount;
 
         campaignDonations[_campaignId].push(Donation({
             donor: msg.sender,
-            amount: _amount,
+            amount: actualAmount,
             timestamp: block.timestamp
         }));
 
-        emit DonationMade(_campaignId, msg.sender, _amount, campaign.raisedAmount);
+        emit DonationMade(_campaignId, msg.sender, actualAmount, campaign.raisedAmount);
     }
 
     /**
-     * @notice Claim raised funds after successful campaign
-     * @dev Only callable by campaign creator after deadline if goal is met
+     * @notice Claim raised funds after campaign goal is reached
+     * @dev Callable by campaign creator once goal is met — no need to wait for deadline.
+     *      Deducts platform fee and transfers remainder to creator.
      * @param _campaignId ID of the campaign
      */
     function claimFunds(uint256 _campaignId) 
@@ -228,7 +243,7 @@ contract CrowdFunding is Ownable, ReentrancyGuard {
         
         require(!campaign.claimed, "Already claimed");
         require(!campaign.cancelled, "Campaign cancelled");
-        require(block.timestamp >= campaign.deadline, "Campaign not ended");
+        // Allow early claim as soon as goal is reached (no deadline requirement)
         require(campaign.raisedAmount >= campaign.goalAmount, "Goal not reached");
 
         campaign.claimed = true;
@@ -249,7 +264,7 @@ contract CrowdFunding is Ownable, ReentrancyGuard {
 
     /**
      * @notice Claim refund for failed or cancelled campaign
-     * @dev Only callable by donors after deadline if goal not met or campaign cancelled
+     * @dev Only callable by donors after deadline if goal not met, or if campaign is cancelled
      * @param _campaignId ID of the campaign
      */
     function claimRefund(uint256 _campaignId) 
@@ -278,7 +293,9 @@ contract CrowdFunding is Ownable, ReentrancyGuard {
     }
 
     /**
-     * @notice Cancel a campaign (only before deadline and if no funds raised)
+     * @notice Cancel a campaign
+     * @dev Only callable by creator before deadline and before funds are claimed.
+     *      Cancellation allows all donors to claim refunds regardless of raised amount.
      * @param _campaignId ID of the campaign to cancel
      */
     function cancelCampaign(uint256 _campaignId) 
@@ -315,6 +332,7 @@ contract CrowdFunding is Ownable, ReentrancyGuard {
 
     /**
      * @notice Get all active campaigns (paginated)
+     * @dev Active = not cancelled, not claimed, goal not yet reached, before deadline
      * @param _offset Starting index
      * @param _limit Maximum number of campaigns to return
      * @return campaignList Array of active campaigns
@@ -326,14 +344,12 @@ contract CrowdFunding is Ownable, ReentrancyGuard {
     {
         uint256 activeCount = 0;
         
-        // Count active campaigns
         for (uint256 i = 1; i <= campaignCount; i++) {
             if (_isActive(i)) {
                 activeCount++;
             }
         }
 
-        // Adjust limit if needed
         if (_offset >= activeCount) {
             return new Campaign[](0);
         }
@@ -413,7 +429,7 @@ contract CrowdFunding is Ownable, ReentrancyGuard {
     }
 
     /**
-     * @notice Check if campaign is active
+     * @notice Check if campaign is active (accepting donations)
      * @param _campaignId ID of the campaign
      * @return True if campaign is active
      */
@@ -446,10 +462,15 @@ contract CrowdFunding is Ownable, ReentrancyGuard {
 
     // ============ Internal Functions ============
 
+    /**
+     * @dev Check if a campaign is still active (accepting donations)
+     *      Active = not cancelled, not claimed, goal not reached, before deadline
+     */
     function _isActive(uint256 _campaignId) internal view returns (bool) {
         Campaign storage campaign = campaigns[_campaignId];
         return !campaign.cancelled && 
                !campaign.claimed && 
+               campaign.raisedAmount < campaign.goalAmount &&
                block.timestamp < campaign.deadline;
     }
 }
