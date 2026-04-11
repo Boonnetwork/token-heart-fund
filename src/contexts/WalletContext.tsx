@@ -9,7 +9,7 @@ import {
 } from '@web3modal/ethers5/react';
 import { toast } from 'sonner';
 
-import { WALLETCONNECT_PROJECT_ID } from '@/lib/web3modal';
+
 
 interface WalletContextType {
   address: string | null;
