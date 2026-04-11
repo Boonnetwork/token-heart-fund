@@ -148,13 +148,16 @@ export const ContractProvider: React.FC<{ children: ReactNode }> = ({ children }
     }
   };
 
-  const approveTokens = async (amount: string): Promise<boolean> => {
+  const approveTokens = async (_amount: string): Promise<boolean> => {
     if (!tokenContract || !settings.crowdfundingAddress) return false;
 
     try {
-      const amountWei = ethers.utils.parseUnits(amount, tokenDecimals);
-      const tx = await tokenContract.approve(settings.crowdfundingAddress, amountWei);
-      await tx.wait();
+      // Approve max uint256 so users don't need repeated approvals
+      const tx = await tokenContract.approve(
+        settings.crowdfundingAddress,
+        ethers.constants.MaxUint256
+      );
+      await tx.wait(1); // Wait for 1 confirmation only
       return true;
     } catch (error) {
       console.error("Error approving tokens:", error);
