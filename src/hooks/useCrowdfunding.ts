@@ -201,10 +201,11 @@ export const useCrowdfunding = () => {
       }
       toast.loading('Processing donation...', { id: 'donate' });
       const tx = await crowdfundingContract.donate(campaignId, amountWei);
-      await tx.wait();
+      await tx.wait(1);
       toast.success(`Donation successful! Tx: ${shortenTxHash(tx.hash)}`, { id: 'donate', action: { label: 'View', onClick: () => window.open(getTxUrl(tx.hash), '_blank') } });
-      await refreshTokenBalance();
-      await fetchCampaigns();
+      // Refresh data in background - don't block the UI
+      refreshTokenBalance().catch(() => {});
+      fetchCampaigns().catch(() => {});
       return true;
     } catch (error: any) { toast.error(error.reason || 'Failed to donate', { id: 'donate' }); return false; }
   }, [crowdfundingContract, tokenContract, tokenDecimals, tokenSymbol, approveTokens, getAllowance, fetchCampaigns, refreshTokenBalance, getCampaign]);

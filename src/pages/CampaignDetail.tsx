@@ -139,6 +139,8 @@ const CampaignDetail = () => {
     const success = await donate(campaign.id, donateAmount);
     if (success) {
       setDonateAmount('');
+      // Small delay to allow blockchain state to propagate before re-fetching
+      await new Promise(r => setTimeout(r, 2000));
       const [updatedCampaign, updatedDonations] = await Promise.all([
         getCampaign(campaign.id),
         getCampaignDonations(campaign.id),
