@@ -9,7 +9,7 @@ import {
 } from '@web3modal/ethers5/react';
 import { toast } from 'sonner';
 
-import { WALLETCONNECT_PROJECT_ID } from '@/lib/web3modal';
+
 
 interface WalletContextType {
   address: string | null;
@@ -67,33 +67,15 @@ export const WalletProvider: React.FC<{ children: ReactNode }> = ({ children }) 
     }
   }, [walletProvider, isConnected, address, updateBalance]);
 
-  const preflightWalletList = useCallback(async () => {
-    try {
-      const res = await fetch('https://api.web3modal.com/getWallets?page=1&entries=1', {
-        headers: {
-          'x-project-id': WALLETCONNECT_PROJECT_ID,
-          'x-sdk-type': 'w3m',
-          'x-sdk-version': 'react-ethers5-4.2.3',
-        },
-      });
-
-      if (res.status === 403) {
-        toast.error('WalletConnect is blocked for this Project ID / domain', {
-          description:
-            'Fix: use your own WalletConnect Cloud Project ID + allowlist this domain. Then set VITE_WALLETCONNECT_PROJECT_ID.',
-        });
-      }
-    } catch {
-      // ignore
-    }
-  }, []);
-
   const connectWallet = useCallback(() => {
     setIsConnecting(true);
-    preflightWalletList()
-      .finally(() => open())
+    open()
+      .catch((err) => {
+        console.error('Error opening wallet modal:', err);
+        toast.error('Failed to open wallet connection');
+      })
       .finally(() => setIsConnecting(false));
-  }, [open, preflightWalletList]);
+  }, [open]);
 
   const disconnectWallet = useCallback(() => {
     disconnect();
