@@ -107,9 +107,8 @@ const CampaignDetail = () => {
     setNotFound(false);
     if (crowdfundingContract) {
       fetchData();
-    } else if (id) {
-      setIsLoading(false);
     }
+    // Keep isLoading=true when contract isn't ready yet (don't show "not found")
   }, [id, address, crowdfundingContract]);
 
   const handleRefresh = async () => {
