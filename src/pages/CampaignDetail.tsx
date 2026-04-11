@@ -58,7 +58,7 @@ const CampaignDetail = () => {
   const [notFound, setNotFound] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
 
-  const fetchData = async () => {
+  const fetchData = async (retryCount = 0) => {
     if (!id || !crowdfundingContract) return;
     
     const campaignId = parseInt(id);
@@ -74,6 +74,11 @@ const CampaignDetail = () => {
     ]);
     
     if (!campaignData) {
+      // Retry up to 3 times with delay for freshly created campaigns
+      if (retryCount < 3) {
+        await new Promise(resolve => setTimeout(resolve, 2000));
+        return fetchData(retryCount + 1);
+      }
       setNotFound(true);
       setIsLoading(false);
       return;
@@ -102,9 +107,8 @@ const CampaignDetail = () => {
     setNotFound(false);
     if (crowdfundingContract) {
       fetchData();
-    } else if (id) {
-      setIsLoading(false);
     }
+    // Keep isLoading=true when contract isn't ready yet (don't show "not found")
   }, [id, address, crowdfundingContract]);
 
   const handleRefresh = async () => {
