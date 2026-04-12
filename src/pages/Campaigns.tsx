@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useCallback } from 'react';
 import { Layout } from '@/components/Layout';
 import { CampaignCard, Campaign } from '@/components/CampaignCard';
 import { CampaignCardSkeleton } from '@/components/CampaignCardSkeleton';
@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useCrowdfunding } from '@/hooks/useCrowdfunding';
+import { useContractEvents } from '@/hooks/useContractEvents';
 import { Search, Filter, Rocket, ChevronLeft, ChevronRight, RefreshCw } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { toast } from 'sonner';
@@ -24,6 +25,12 @@ const Campaigns = () => {
   const [sortOption, setSortOption] = useState<SortOption>('newest');
   const [currentPage, setCurrentPage] = useState(1);
   const [isRefreshing, setIsRefreshing] = useState(false);
+
+  // Real-time: auto-refresh when new campaigns are created or donations made
+  useContractEvents({
+    onCampaignCreated: useCallback(() => { fetchCampaigns(); }, [fetchCampaigns]),
+    onDonationMade: useCallback(() => { fetchCampaigns(); }, [fetchCampaigns]),
+  });
 
   const handleRefresh = async () => {
     setIsRefreshing(true);
