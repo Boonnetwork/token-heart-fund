@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { Layout } from '@/components/Layout';
 import { Button } from '@/components/ui/button';
@@ -11,6 +11,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { useWallet } from '@/contexts/WalletContext';
 import { useContracts } from '@/contexts/ContractContext';
 import { useCrowdfunding, CampaignData, DonationData, ClaimEventData } from '@/hooks/useCrowdfunding';
+import { useContractEvents } from '@/hooks/useContractEvents';
 import { ShareButtons } from '@/components/ShareButtons';
 import { 
   ArrowLeft, 
@@ -108,8 +109,29 @@ const CampaignDetail = () => {
     if (crowdfundingContract) {
       fetchData();
     }
-    // Keep isLoading=true when contract isn't ready yet (don't show "not found")
   }, [id, address, crowdfundingContract]);
+
+  // Real-time event listeners for instant UI updates
+  const campaignId = id ? parseInt(id) : 0;
+  
+  useContractEvents({
+    onDonationMade: useCallback((evCampaignId: number, donor: string, amount: string) => {
+      if (evCampaignId === campaignId) {
+        // Refresh campaign data when a donation is made to this campaign
+        fetchData();
+        refreshTokenBalance().catch(() => {});
+      }
+    }, [campaignId]),
+    onFundsClaimed: useCallback((evCampaignId: number) => {
+      if (evCampaignId === campaignId) fetchData();
+    }, [campaignId]),
+    onRefundClaimed: useCallback((evCampaignId: number) => {
+      if (evCampaignId === campaignId) fetchData();
+    }, [campaignId]),
+    onCampaignCancelled: useCallback((evCampaignId: number) => {
+      if (evCampaignId === campaignId) fetchData();
+    }, [campaignId]),
+  });
 
   const handleRefresh = async () => {
     setIsRefreshing(true);
