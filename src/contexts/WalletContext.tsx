@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode, useCallback } from 'react';
+import React, { createContext, useContext, useState, useEffect, ReactNode, useCallback, useRef } from 'react';
 import { ethers } from 'ethers';
 import {
   useWeb3ModalProvider,
@@ -8,8 +8,6 @@ import {
   useWeb3Modal
 } from '@web3modal/ethers5/react';
 import { toast } from 'sonner';
-
-
 
 interface WalletContextType {
   address: string | null;
@@ -34,6 +32,7 @@ export const WalletProvider: React.FC<{ children: ReactNode }> = ({ children }) 
   const [signer, setSigner] = useState<ethers.Signer | null>(null);
   const [balance, setBalance] = useState('0');
   const [isConnecting, setIsConnecting] = useState(false);
+  const balanceRetryRef = useRef<NodeJS.Timeout | null>(null);
 
   const { walletProvider } = useWeb3ModalProvider();
   const { address, isConnected, chainId } = useWeb3ModalAccount();
@@ -45,8 +44,10 @@ export const WalletProvider: React.FC<{ children: ReactNode }> = ({ children }) 
     try {
       const bal = await prov.getBalance(addr);
       setBalance(ethers.utils.formatEther(bal));
+      return true;
     } catch (error) {
       console.error('Error fetching balance:', error);
+      return false;
     }
   }, []);
 
@@ -55,17 +56,35 @@ export const WalletProvider: React.FC<{ children: ReactNode }> = ({ children }) 
   }, [address, provider, updateBalance]);
 
   useEffect(() => {
+    // Clear any pending retry
+    if (balanceRetryRef.current) {
+      clearTimeout(balanceRetryRef.current);
+      balanceRetryRef.current = null;
+    }
+
     if (walletProvider && isConnected && address) {
       const web3Provider = new ethers.providers.Web3Provider(walletProvider);
       setProvider(web3Provider);
       setSigner(web3Provider.getSigner());
-      updateBalance(address, web3Provider);
+      
+      // Fetch balance immediately, retry once if it fails (provider may not be ready)
+      updateBalance(address, web3Provider).then((success) => {
+        if (!success) {
+          balanceRetryRef.current = setTimeout(() => {
+            updateBalance(address, web3Provider);
+          }, 1500);
+        }
+      });
     } else {
       setProvider(null);
       setSigner(null);
       setBalance('0');
     }
-  }, [walletProvider, isConnected, address, updateBalance]);
+
+    return () => {
+      if (balanceRetryRef.current) clearTimeout(balanceRetryRef.current);
+    };
+  }, [walletProvider, isConnected, address, chainId, updateBalance]);
 
   const connectWallet = useCallback(() => {
     setIsConnecting(true);

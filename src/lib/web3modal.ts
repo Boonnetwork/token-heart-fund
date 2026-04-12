@@ -2,9 +2,6 @@ import { createWeb3Modal, defaultConfig } from "@web3modal/ethers5/react";
 
 /**
  * WalletConnect Cloud Project ID
- *
- * Note: If you see 403 errors from api.web3modal.com, your Project ID is invalid
- * or the current domain is not allowlisted in your WalletConnect Cloud settings.
  */
 export const WALLETCONNECT_PROJECT_ID =
   (import.meta as any).env?.VITE_WALLETCONNECT_PROJECT_ID || "d0d285318792eb7b50c5ce363ebd9501";
@@ -15,7 +12,7 @@ const bscTestnet = {
   name: "BNB Smart Chain Testnet",
   currency: "tBNB",
   explorerUrl: "https://testnet.bscscan.com",
-  rpcUrl: "https://data-seed-prebsc-1-s1.binance.org:8545",
+  rpcUrl: "https://data-seed-prebsc-1-s1.bnbchain.org:8545",
 };
 
 // Metadata for the dApp
@@ -48,4 +45,8 @@ export const web3Modal = createWeb3Modal({
     "--w3m-accent": "#10b981",
     "--w3m-border-radius-master": "2px",
   },
+  // Faster connection: skip unnecessary checks
+  featuredWalletIds: [],
+  includeWalletIds: undefined,
+  enableExplorer: false,
 });
