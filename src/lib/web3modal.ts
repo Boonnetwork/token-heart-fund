@@ -48,5 +48,4 @@ export const web3Modal = createWeb3Modal({
   // Faster connection: skip unnecessary checks
   featuredWalletIds: [],
   includeWalletIds: undefined,
-  enableExplorer: false,
 });
