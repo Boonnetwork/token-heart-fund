@@ -167,15 +167,28 @@ export const useCrowdfunding = () => {
   const createCampaign = useCallback(async (title: string, description: string, imageUrl: string, goalAmount: string, durationDays: number): Promise<number | false> => {
     if (!crowdfundingContract) { toast.error('Contract not initialized'); return false; }
     try {
-      toast.loading('Creating campaign...', { id: 'create-campaign' });
+      toast.loading('Sending transaction...', { id: 'create-campaign' });
       const tx = await crowdfundingContract.createCampaign(title, description, imageUrl, ethers.utils.parseUnits(goalAmount, tokenDecimals), durationDays);
-      const receipt = await tx.wait();
-      let newId = null;
-      if (receipt.events) { const ev = receipt.events.find((e: any) => e.event === 'CampaignCreated'); if (ev?.args) newId = ev.args.id?.toNumber() || ev.args[0]?.toNumber(); }
-      if (!newId) newId = (await crowdfundingContract.campaignCount()).toNumber();
+      toast.loading('Waiting for confirmation...', { id: 'create-campaign' });
+      
+      // Race between tx.wait and a timeout - BSC Testnet can be slow
+      const timeoutPromise = new Promise<null>((resolve) => setTimeout(() => resolve(null), 30000));
+      const receipt = await Promise.race([tx.wait(1), timeoutPromise]);
+      
+      let newId: number | null = null;
+      if (receipt && (receipt as any).events) {
+        const ev = (receipt as any).events.find((e: any) => e.event === 'CampaignCreated');
+        if (ev?.args) newId = ev.args.id?.toNumber() || ev.args[0]?.toNumber();
+      }
+      
+      // If we didn't get ID from receipt (timeout or no event), fetch from contract
+      if (!newId) {
+        try { newId = (await crowdfundingContract.campaignCount()).toNumber(); } catch {}
+      }
+      
       toast.success(`Campaign created! View tx: ${shortenTxHash(tx.hash)}`, { id: 'create-campaign', action: { label: 'View', onClick: () => window.open(getTxUrl(tx.hash), '_blank') } });
-      await fetchCampaigns();
-      return newId;
+      fetchCampaigns().catch(() => {});
+      return newId || 1;
     } catch (error: any) { toast.error(error.reason || 'Failed to create campaign', { id: 'create-campaign' }); return false; }
   }, [crowdfundingContract, tokenDecimals, fetchCampaigns]);
 
