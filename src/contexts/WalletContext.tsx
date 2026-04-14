@@ -224,19 +224,6 @@ export const WalletProvider: React.FC<{ children: ReactNode }> = ({ children }) 
     setIsConnecting(true);
 
     try {
-      const injectedProvider = getInjectedProvider();
-
-      if (injectedProvider) {
-        await connectInjectedWallet(injectedProvider);
-        return;
-      }
-
-      if (typeof navigator !== 'undefined' && MOBILE_DEVICE_REGEX.test(navigator.userAgent)) {
-        toast.loading('Opening MetaMask...', { id: 'wallet-connect' });
-        window.location.assign(getMetaMaskDeepLink());
-        return;
-      }
-
       await open({ view: 'Connect' });
     } catch (err: any) {
       if (err?.code === 4001) {
@@ -248,7 +235,7 @@ export const WalletProvider: React.FC<{ children: ReactNode }> = ({ children }) 
     } finally {
       setIsConnecting(false);
     }
-  }, [connectInjectedWallet, isConnecting, open]);
+  }, [isConnecting, open]);
 
   const disconnectWallet = useCallback(() => {
     clearFallbackSession();

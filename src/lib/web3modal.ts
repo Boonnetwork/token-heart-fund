@@ -45,7 +45,4 @@ export const web3Modal = createWeb3Modal({
     "--w3m-accent": "#10b981",
     "--w3m-border-radius-master": "2px",
   },
-  // Faster connection: skip unnecessary checks
-  featuredWalletIds: [],
-  includeWalletIds: undefined,
 });
