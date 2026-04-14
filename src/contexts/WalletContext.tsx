@@ -27,18 +27,80 @@ const WalletContext = createContext<WalletContextType | undefined>(undefined);
 
 export const BSC_TESTNET_CHAIN_ID = 97;
 
+type InjectedEthereumProvider = {
+  isMetaMask?: boolean;
+  providers?: InjectedEthereumProvider[];
+  request?: (args: { method: string; params?: unknown[] | Record<string, unknown> }) => Promise<unknown>;
+  on?: (event: string, callback: (...args: any[]) => void) => void;
+  removeListener?: (event: string, callback: (...args: any[]) => void) => void;
+};
+
+const MOBILE_DEVICE_REGEX = /android|iphone|ipad|ipod/i;
+
+const getInjectedProvider = (): InjectedEthereumProvider | undefined => {
+  if (typeof window === 'undefined') return undefined;
+
+  const ethereum = (window as Window & { ethereum?: InjectedEthereumProvider }).ethereum;
+  if (!ethereum) return undefined;
+
+  if (ethereum.providers?.length) {
+    return ethereum.providers.find((provider) => provider.isMetaMask) ?? ethereum.providers[0];
+  }
+
+  return ethereum;
+};
+
+const getMetaMaskDeepLink = () => {
+  if (typeof window === 'undefined') return 'https://metamask.app.link/';
+
+  return `https://metamask.app.link/dapp/${window.location.host}${window.location.pathname}${window.location.search}${window.location.hash}`;
+};
+
 export const WalletProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [provider, setProvider] = useState<ethers.providers.Web3Provider | null>(null);
   const [signer, setSigner] = useState<ethers.Signer | null>(null);
   const [balance, setBalance] = useState('0');
   const [isConnecting, setIsConnecting] = useState(false);
+  const [fallbackAddress, setFallbackAddress] = useState<string | null>(null);
+  const [fallbackChainId, setFallbackChainId] = useState<number | null>(null);
   const balanceRetryRef = useRef<NodeJS.Timeout | null>(null);
+  const injectedProviderRef = useRef<InjectedEthereumProvider | null>(null);
+  const injectedListenersRef = useRef<{
+    accountsChanged?: (accounts: string[]) => void;
+    chainChanged?: (chainId: string | number) => void;
+  }>({});
 
   const { walletProvider } = useWeb3ModalProvider();
   const { address, isConnected, chainId } = useWeb3ModalAccount();
   const { disconnect } = useDisconnect();
   const { switchNetwork } = useSwitchNetwork();
   const { open } = useWeb3Modal();
+
+  const activeAddress = address || fallbackAddress;
+  const activeChainId = chainId || fallbackChainId;
+  const activeIsConnected = isConnected || !!fallbackAddress;
+
+  const clearInjectedListeners = useCallback(() => {
+    const injectedProvider = injectedProviderRef.current;
+    const { accountsChanged, chainChanged } = injectedListenersRef.current;
+
+    if (injectedProvider?.removeListener && accountsChanged) {
+      injectedProvider.removeListener('accountsChanged', accountsChanged);
+    }
+
+    if (injectedProvider?.removeListener && chainChanged) {
+      injectedProvider.removeListener('chainChanged', chainChanged);
+    }
+
+    injectedListenersRef.current = {};
+    injectedProviderRef.current = null;
+  }, []);
+
+  const clearFallbackSession = useCallback(() => {
+    clearInjectedListeners();
+    setFallbackAddress(null);
+    setFallbackChainId(null);
+  }, [clearInjectedListeners]);
 
   const updateBalance = useCallback(async (addr: string, prov: ethers.providers.Web3Provider) => {
     try {
@@ -52,69 +114,206 @@ export const WalletProvider: React.FC<{ children: ReactNode }> = ({ children }) 
   }, []);
 
   const refreshBalance = useCallback(async () => {
-    if (address && provider) await updateBalance(address, provider);
-  }, [address, provider, updateBalance]);
+    if (activeAddress && provider) await updateBalance(activeAddress, provider);
+  }, [activeAddress, provider, updateBalance]);
+
+  const connectInjectedWallet = useCallback(async (injectedProvider: InjectedEthereumProvider) => {
+    if (!injectedProvider.request) {
+      throw new Error('No injected wallet provider available');
+    }
+
+    await injectedProvider.request({ method: 'eth_requestAccounts' });
+
+    const web3Provider = new ethers.providers.Web3Provider(
+      injectedProvider as ethers.providers.ExternalProvider,
+      'any'
+    );
+
+    const [accounts, network] = await Promise.all([
+      web3Provider.listAccounts(),
+      web3Provider.getNetwork(),
+    ]);
+
+    if (!accounts.length) {
+      throw new Error('No wallet account returned');
+    }
+
+    clearInjectedListeners();
+
+    const handleAccountsChanged = (accountsChanged: string[]) => {
+      if (!accountsChanged.length) {
+        setProvider(null);
+        setSigner(null);
+        setBalance('0');
+        clearFallbackSession();
+        return;
+      }
+
+      setFallbackAddress(accountsChanged[0]);
+      updateBalance(accountsChanged[0], web3Provider).catch(() => undefined);
+    };
+
+    const handleChainChanged = (nextChainId: string | number) => {
+      const parsedChainId = typeof nextChainId === 'string'
+        ? parseInt(nextChainId, 16)
+        : Number(nextChainId);
+
+      setFallbackChainId(Number.isNaN(parsedChainId) ? null : parsedChainId);
+      updateBalance(accounts[0], web3Provider).catch(() => undefined);
+    };
+
+    injectedProvider.on?.('accountsChanged', handleAccountsChanged);
+    injectedProvider.on?.('chainChanged', handleChainChanged);
+
+    injectedProviderRef.current = injectedProvider;
+    injectedListenersRef.current = {
+      accountsChanged: handleAccountsChanged,
+      chainChanged: handleChainChanged,
+    };
+
+    setProvider(web3Provider);
+    setSigner(web3Provider.getSigner());
+    setFallbackAddress(accounts[0]);
+    setFallbackChainId(network.chainId);
+    await updateBalance(accounts[0], web3Provider);
+  }, [clearFallbackSession, clearInjectedListeners, updateBalance]);
 
   useEffect(() => {
-    // Clear any pending retry
+    if (walletProvider && isConnected && address) {
+      const web3Provider = new ethers.providers.Web3Provider(walletProvider, 'any');
+      setProvider(web3Provider);
+      setSigner(web3Provider.getSigner());
+
+      if (fallbackAddress || fallbackChainId) {
+        clearFallbackSession();
+      }
+    } else if (!fallbackAddress) {
+      setProvider(null);
+      setSigner(null);
+    }
+
+    return () => clearInjectedListeners();
+  }, [walletProvider, isConnected, address, fallbackAddress, fallbackChainId, clearFallbackSession, clearInjectedListeners]);
+
+  useEffect(() => {
     if (balanceRetryRef.current) {
       clearTimeout(balanceRetryRef.current);
       balanceRetryRef.current = null;
     }
 
-    if (walletProvider && isConnected && address) {
-      const web3Provider = new ethers.providers.Web3Provider(walletProvider);
-      setProvider(web3Provider);
-      setSigner(web3Provider.getSigner());
-      
-      // Fetch balance immediately, retry once if it fails (provider may not be ready)
-      updateBalance(address, web3Provider).then((success) => {
+    if (activeAddress && provider && activeIsConnected) {
+      updateBalance(activeAddress, provider).then((success) => {
         if (!success) {
           balanceRetryRef.current = setTimeout(() => {
-            updateBalance(address, web3Provider);
+            updateBalance(activeAddress, provider);
           }, 1500);
         }
       });
     } else {
-      setProvider(null);
-      setSigner(null);
       setBalance('0');
     }
 
     return () => {
       if (balanceRetryRef.current) clearTimeout(balanceRetryRef.current);
     };
-  }, [walletProvider, isConnected, address, chainId, updateBalance]);
+  }, [activeAddress, activeChainId, activeIsConnected, provider, updateBalance]);
 
-  const connectWallet = useCallback(() => {
+  const connectWallet = useCallback(async () => {
+    if (isConnecting) return;
+
     setIsConnecting(true);
-    open()
-      .catch((err) => {
-        console.error('Error opening wallet modal:', err);
-        toast.error('Failed to open wallet connection');
-      })
-      .finally(() => setIsConnecting(false));
-  }, [open]);
+
+    try {
+      const injectedProvider = getInjectedProvider();
+
+      if (injectedProvider) {
+        await connectInjectedWallet(injectedProvider);
+        return;
+      }
+
+      if (typeof navigator !== 'undefined' && MOBILE_DEVICE_REGEX.test(navigator.userAgent)) {
+        toast.loading('Opening MetaMask...', { id: 'wallet-connect' });
+        window.location.assign(getMetaMaskDeepLink());
+        return;
+      }
+
+      await open({ view: 'Connect' });
+    } catch (err: any) {
+      if (err?.code === 4001) {
+        toast.error('Wallet connection was cancelled');
+      } else {
+        console.error('Error connecting wallet:', err);
+        toast.error('Failed to connect wallet');
+      }
+    } finally {
+      setIsConnecting(false);
+    }
+  }, [connectInjectedWallet, isConnecting, open]);
 
   const disconnectWallet = useCallback(() => {
-    disconnect();
-  }, [disconnect]);
+    clearFallbackSession();
+    setProvider(null);
+    setSigner(null);
+    setBalance('0');
+    disconnect().catch((error) => {
+      console.error('Error disconnecting wallet:', error);
+    });
+  }, [clearFallbackSession, disconnect]);
 
   const switchToBSCTestnet = useCallback(async () => {
     try {
+      const externalProvider = provider?.provider as InjectedEthereumProvider | undefined;
+
+      if (externalProvider?.request) {
+        await externalProvider.request({
+          method: 'wallet_switchEthereumChain',
+          params: [{ chainId: ethers.utils.hexValue(BSC_TESTNET_CHAIN_ID) }],
+        });
+        setFallbackChainId(BSC_TESTNET_CHAIN_ID);
+        return;
+      }
+
       await switchNetwork(BSC_TESTNET_CHAIN_ID);
-    } catch (error) {
+    } catch (error: any) {
+      if (error?.code === 4902) {
+        const externalProvider = provider?.provider as InjectedEthereumProvider | undefined;
+        if (externalProvider?.request) {
+          try {
+            await externalProvider.request({
+              method: 'wallet_addEthereumChain',
+              params: [{
+                chainId: ethers.utils.hexValue(BSC_TESTNET_CHAIN_ID),
+                chainName: 'BNB Smart Chain Testnet',
+                nativeCurrency: {
+                  name: 'tBNB',
+                  symbol: 'tBNB',
+                  decimals: 18,
+                },
+                rpcUrls: ['https://data-seed-prebsc-1-s1.bnbchain.org:8545'],
+                blockExplorerUrls: ['https://testnet.bscscan.com'],
+              }],
+            });
+            setFallbackChainId(BSC_TESTNET_CHAIN_ID);
+            return;
+          } catch (addChainError) {
+            console.error('Error adding BSC Testnet:', addChainError);
+          }
+        }
+      }
+
       console.error('Error switching network:', error);
     }
-  }, [switchNetwork]);
+  }, [provider, switchNetwork]);
+
+  useEffect(() => () => clearInjectedListeners(), [clearInjectedListeners]);
 
   return (
     <WalletContext.Provider
       value={{
-        address: address || null,
-        isConnected,
+        address: activeAddress,
+        isConnected: activeIsConnected,
         isConnecting,
-        chainId: chainId || null,
+        chainId: activeChainId,
         provider,
         signer,
         balance,
