@@ -180,9 +180,9 @@ const Campaigns = () => {
                 <Button variant="outline" size="sm" onClick={() => setCurrentPage(p => Math.max(1, p - 1))} disabled={currentPage === 1}>
                   <ChevronLeft className="w-4 h-4" />
                 </Button>
-                <div className="flex items-center gap-1">
+                <div className="flex items-center gap-1 max-w-[60vw] overflow-x-auto scrollbar-none">
                   {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-                    <Button key={page} variant={currentPage === page ? 'default' : 'outline'} size="sm" onClick={() => setCurrentPage(page)} className="w-8 h-8 p-0">
+                    <Button key={page} variant={currentPage === page ? 'default' : 'outline'} size="sm" onClick={() => setCurrentPage(page)} className="w-8 h-8 p-0 flex-shrink-0">
                       {page}
                     </Button>
                   ))}
