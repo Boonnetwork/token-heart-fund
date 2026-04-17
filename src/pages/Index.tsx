@@ -80,7 +80,7 @@ const Index = () => {
       </section>
 
       {/* How It Works */}
-      <section className="py-20 bg-card/30">
+      <section className="py-12 sm:py-20 bg-card/30">
         <div className="container mx-auto px-4">
           <div className="text-center mb-12">
             <h2 className="font-display text-3xl md:text-4xl font-bold text-foreground mb-4">
@@ -116,7 +116,7 @@ const Index = () => {
       </section>
 
       {/* Features */}
-      <section className="py-20">
+      <section className="py-12 sm:py-20">
         <div className="container mx-auto px-4">
           <div className="text-center mb-12">
             <h2 className="font-display text-3xl md:text-4xl font-bold text-foreground mb-4">
@@ -145,7 +145,7 @@ const Index = () => {
       </section>
 
       {/* Featured Campaigns */}
-      <section className="py-20 bg-card/30">
+      <section className="py-12 sm:py-20 bg-card/30">
         <div className="container mx-auto px-4">
           <div className="flex items-center justify-between mb-10">
             <div>
@@ -192,7 +192,7 @@ const Index = () => {
       </section>
 
       {/* CTA */}
-      <section className="py-20 bg-gradient-hero">
+      <section className="py-12 sm:py-20 bg-gradient-hero">
         <div className="container mx-auto px-4 text-center">
           <h2 className="font-display text-3xl md:text-4xl font-bold text-foreground mb-4">
             Ready to Launch Your Project?
