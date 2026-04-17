@@ -84,10 +84,45 @@
     @apply bg-background text-foreground font-sans antialiased;
     background-image: var(--gradient-mesh);
     background-attachment: fixed;
+    /* Prevent accidental horizontal scroll on mobile */
+    overflow-x: hidden;
+    /* Smoother momentum scroll on iOS */
+    -webkit-overflow-scrolling: touch;
+    /* Subtle tap highlight that matches the brand */
+    -webkit-tap-highlight-color: hsl(var(--primary) / 0.15);
   }
 
   html {
     scroll-behavior: smooth;
+    -webkit-text-size-adjust: 100%;
+  }
+
+  /* Mobile: disable fixed background (causes major scroll jank on iOS/Android)
+     and shrink heavy mesh gradient cost */
+  @media (max-width: 768px) {
+    body {
+      background-attachment: scroll;
+      background-image: none;
+      background-color: hsl(var(--background));
+    }
+    /* Reduce heavy backdrop-blur on mobile for smoother scrolling */
+    .glass-card,
+    .glass-card-hover {
+      backdrop-filter: blur(6px);
+      -webkit-backdrop-filter: blur(6px);
+    }
+  }
+
+  /* Respect users who prefer reduced motion */
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
   }
 }
 
