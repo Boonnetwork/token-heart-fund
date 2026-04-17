@@ -324,7 +324,7 @@ const CampaignDetail = () => {
 
             {/* Title & Creator */}
             <div>
-              <h1 className="font-display text-3xl md:text-4xl font-bold text-foreground mb-3">
+              <h1 className="font-display text-2xl sm:text-3xl md:text-4xl font-bold text-foreground mb-3 break-words">
                 {campaign.title}
               </h1>
               <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
@@ -463,7 +463,7 @@ const CampaignDetail = () => {
 
           {/* Sidebar */}
           <div className="space-y-6">
-            <Card className="glass-card sticky top-24">
+            <Card className="glass-card lg:sticky lg:top-24">
               <CardContent className="pt-6 space-y-6">
                 {/* Amount Raised */}
                 <div>
