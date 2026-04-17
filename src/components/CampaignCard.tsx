@@ -45,17 +45,19 @@ export const CampaignCard: React.FC<CampaignCardProps> = ({ campaign, className 
       className={cn("glass-card-hover block overflow-hidden group", className)}
     >
       {/* Image */}
-      <div className="relative h-48 overflow-hidden">
-        <img 
-          src={imgError ? DEFAULT_IMAGE : campaign.imageUrl || DEFAULT_IMAGE} 
+      <div className="relative h-44 sm:h-48 overflow-hidden bg-muted">
+        <img
+          src={imgError ? DEFAULT_IMAGE : campaign.imageUrl || DEFAULT_IMAGE}
           alt={campaign.title}
+          loading="lazy"
+          decoding="async"
           className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
           onError={() => setImgError(true)}
         />
         <div className="absolute inset-0 bg-gradient-to-t from-card via-transparent to-transparent" />
-        <Badge 
-          variant="outline" 
-          className={cn("absolute top-3 right-3", statusConfig[campaign.status].className)}
+        <Badge
+          variant="outline"
+          className={cn("absolute top-3 right-3 text-xs", statusConfig[campaign.status].className)}
         >
           {campaign.status === 'cancelled' && <XCircle className="w-3 h-3 mr-1" />}
           {statusConfig[campaign.status].label}
@@ -63,7 +65,7 @@ export const CampaignCard: React.FC<CampaignCardProps> = ({ campaign, className 
       </div>
 
       {/* Content */}
-      <div className="p-5 space-y-4">
+      <div className="p-4 sm:p-5 space-y-4">
         <div>
           <h3 className="font-display font-semibold text-lg text-foreground line-clamp-1 group-hover:text-primary transition-colors">
             {campaign.title}

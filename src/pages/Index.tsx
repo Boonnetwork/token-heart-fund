@@ -45,22 +45,22 @@ const Index = () => {
       {/* Hero Section */}
       <section className="relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-hero" />
-        <div className="container mx-auto px-4 py-20 lg:py-32 relative">
+        <div className="container mx-auto px-4 py-12 sm:py-16 lg:py-32 relative">
           <div className="max-w-3xl mx-auto text-center">
-            <div className="space-y-8">
-              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 text-primary text-sm font-medium animate-fade-in">
+            <div className="space-y-6 sm:space-y-8">
+              <div className="inline-flex items-center gap-2 px-3 py-1.5 sm:px-4 sm:py-2 rounded-full bg-primary/10 border border-primary/20 text-primary text-xs sm:text-sm font-medium animate-fade-in">
                 <Coins className="w-4 h-4" />
                 Powered by BNB Smart Chain
               </div>
-              <h1 className="font-display text-4xl md:text-5xl lg:text-6xl font-bold text-foreground animate-fade-in-up" style={{ animationDelay: '0.1s' }}>
+              <h1 className="font-display text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-foreground animate-fade-in-up leading-tight" style={{ animationDelay: '0.1s' }}>
                 Fund the Future with{' '}
                 <span className="gradient-text text-glow">Blockchain</span>
               </h1>
-              <p className="text-lg md:text-xl text-muted-foreground max-w-xl mx-auto animate-fade-in-up" style={{ animationDelay: '0.2s' }}>
+              <p className="text-base sm:text-lg md:text-xl text-muted-foreground max-w-xl mx-auto animate-fade-in-up" style={{ animationDelay: '0.2s' }}>
                 Decentralized crowdfunding platform where every donation is transparent, 
                 secure, and powered by smart contracts.
               </p>
-              <div className="flex flex-col sm:flex-row gap-4 justify-center animate-fade-in-up" style={{ animationDelay: '0.3s' }}>
+              <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center animate-fade-in-up" style={{ animationDelay: '0.3s' }}>
                 <Button variant="gradient" size="xl" asChild>
                   <Link to="/campaigns">
                     <Rocket className="w-5 h-5" />
