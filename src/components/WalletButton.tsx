@@ -47,29 +47,33 @@ export const WalletButton: React.FC = () => {
 
   if (!isConnected) {
     return (
-      <Button 
-        variant="wallet" 
-        size="lg"
+      <Button
+        variant="wallet"
         onClick={connectWallet}
         disabled={isConnecting}
-        className="gap-2"
+        className="gap-2 h-10 px-3 text-sm sm:h-11 sm:px-5 sm:text-base lg:h-12"
       >
-        <Wallet className="w-5 h-5" />
-        {isConnecting ? 'Connecting...' : 'Connect Wallet'}
+        <Wallet className="w-4 h-4 sm:w-5 sm:h-5" />
+        <span className="hidden sm:inline">
+          {isConnecting ? 'Connecting...' : 'Connect Wallet'}
+        </span>
+        <span className="sm:hidden">
+          {isConnecting ? '...' : 'Connect'}
+        </span>
       </Button>
     );
   }
 
   if (isWrongNetwork) {
     return (
-      <Button 
-        variant="destructive" 
-        size="lg"
+      <Button
+        variant="destructive"
         onClick={switchToBSCTestnet}
-        className="gap-2"
+        className="gap-2 h-10 px-3 text-sm sm:h-11 sm:px-5 sm:text-base lg:h-12"
       >
-        <AlertTriangle className="w-5 h-5" />
-        Switch to BSC Testnet
+        <AlertTriangle className="w-4 h-4 sm:w-5 sm:h-5" />
+        <span className="hidden sm:inline">Switch to BSC Testnet</span>
+        <span className="sm:hidden">Wrong Network</span>
       </Button>
     );
   }
@@ -77,7 +81,7 @@ export const WalletButton: React.FC = () => {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="glass" size="lg" className="gap-2">
+        <Button variant="glass" className="gap-2 h-10 px-2.5 text-xs sm:h-11 sm:px-5 sm:text-base lg:h-12">
           <div className="w-2 h-2 rounded-full bg-emerald animate-pulse" />
           <span className="font-mono">{formatAddress(address!)}</span>
           <ChevronDown className="w-4 h-4" />

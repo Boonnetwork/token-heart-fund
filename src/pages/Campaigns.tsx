@@ -86,19 +86,19 @@ const Campaigns = () => {
 
   return (
     <Layout>
-      <div className="container mx-auto px-4 py-12">
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-10">
+      <div className="container mx-auto px-4 py-8 sm:py-12">
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6 sm:mb-10">
           <div>
-            <h1 className="font-display text-3xl md:text-4xl font-bold text-foreground mb-2">All Campaigns</h1>
-            <p className="text-muted-foreground">Discover and support innovative blockchain projects</p>
+            <h1 className="font-display text-2xl sm:text-3xl md:text-4xl font-bold text-foreground mb-1 sm:mb-2">All Campaigns</h1>
+            <p className="text-sm sm:text-base text-muted-foreground">Discover and support innovative blockchain projects</p>
           </div>
           <div className="flex items-center gap-2">
             <Button variant="ghost" size="sm" onClick={handleRefresh} disabled={isRefreshing}>
-              <RefreshCw className={cn("w-4 h-4 mr-1", isRefreshing && "animate-spin")} />
-              Refresh
+              <RefreshCw className={cn("w-4 h-4 sm:mr-1", isRefreshing && "animate-spin")} />
+              <span className="hidden sm:inline">Refresh</span>
             </Button>
-            <Button variant="gradient" asChild>
-              <Link to="/create"><Rocket className="w-4 h-4 mr-2" />Create Campaign</Link>
+            <Button variant="gradient" size="sm" asChild className="sm:h-10">
+              <Link to="/create"><Rocket className="w-4 h-4 sm:mr-2" /><span className="hidden sm:inline">Create Campaign</span><span className="sm:hidden ml-1">Create</span></Link>
             </Button>
           </div>
         </div>
@@ -180,9 +180,9 @@ const Campaigns = () => {
                 <Button variant="outline" size="sm" onClick={() => setCurrentPage(p => Math.max(1, p - 1))} disabled={currentPage === 1}>
                   <ChevronLeft className="w-4 h-4" />
                 </Button>
-                <div className="flex items-center gap-1">
+                <div className="flex items-center gap-1 max-w-[60vw] overflow-x-auto scrollbar-none">
                   {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-                    <Button key={page} variant={currentPage === page ? 'default' : 'outline'} size="sm" onClick={() => setCurrentPage(page)} className="w-8 h-8 p-0">
+                    <Button key={page} variant={currentPage === page ? 'default' : 'outline'} size="sm" onClick={() => setCurrentPage(page)} className="w-8 h-8 p-0 flex-shrink-0">
                       {page}
                     </Button>
                   ))}

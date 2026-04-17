@@ -114,25 +114,25 @@ const Dashboard = () => {
 
   return (
     <Layout>
-      <div className="container mx-auto px-4 py-12">
-        <div className="flex items-center justify-between mb-8">
-          <div>
-            <h1 className="font-display text-3xl font-bold text-foreground mb-2">Dashboard</h1>
-            <p className="text-muted-foreground font-mono text-sm">{address}</p>
+      <div className="container mx-auto px-4 py-8 sm:py-12">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6 sm:mb-8">
+          <div className="min-w-0">
+            <h1 className="font-display text-2xl sm:text-3xl font-bold text-foreground mb-1 sm:mb-2">Dashboard</h1>
+            <p className="text-muted-foreground font-mono text-xs sm:text-sm truncate">{address}</p>
           </div>
           <div className="flex items-center gap-2">
             <Button variant="ghost" size="sm" onClick={handleRefresh} disabled={isRefreshing}>
-              <RefreshCw className={cn("w-4 h-4 mr-1", isRefreshing && "animate-spin")} />
-              Refresh
+              <RefreshCw className={cn("w-4 h-4 sm:mr-1", isRefreshing && "animate-spin")} />
+              <span className="hidden sm:inline">Refresh</span>
             </Button>
-            <Button variant="gradient" asChild>
-              <Link to="/create"><Plus className="w-4 h-4 mr-2" />New Campaign</Link>
+            <Button variant="gradient" size="sm" asChild className="sm:h-10">
+              <Link to="/create"><Plus className="w-4 h-4 sm:mr-2" /><span className="hidden sm:inline">New Campaign</span><span className="sm:hidden ml-1">New</span></Link>
             </Button>
           </div>
         </div>
 
         {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-10">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-6 mb-8 sm:mb-10">
           <Card className="glass-card">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
               <CardTitle className="text-sm font-medium text-muted-foreground">Token Balance</CardTitle>

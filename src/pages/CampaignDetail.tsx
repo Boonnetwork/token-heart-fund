@@ -281,15 +281,15 @@ const CampaignDetail = () => {
 
   return (
     <Layout>
-      <div className="container mx-auto px-4 py-8">
+      <div className="container mx-auto px-4 py-6 sm:py-8">
         {/* Back & Refresh */}
-        <div className="flex items-center justify-between mb-6">
-          <Button variant="ghost" asChild>
-            <Link to="/campaigns"><ArrowLeft className="w-4 h-4 mr-2" />Back to Campaigns</Link>
+        <div className="flex items-center justify-between mb-4 sm:mb-6">
+          <Button variant="ghost" size="sm" asChild>
+            <Link to="/campaigns"><ArrowLeft className="w-4 h-4 sm:mr-2" /><span className="hidden sm:inline">Back to Campaigns</span><span className="sm:hidden ml-1">Back</span></Link>
           </Button>
           <Button variant="ghost" size="sm" onClick={handleRefresh} disabled={isRefreshing}>
-            <RefreshCw className={cn("w-4 h-4 mr-1", isRefreshing && "animate-spin")} />
-            Refresh
+            <RefreshCw className={cn("w-4 h-4 sm:mr-1", isRefreshing && "animate-spin")} />
+            <span className="hidden sm:inline">Refresh</span>
           </Button>
         </div>
 
@@ -307,6 +307,8 @@ const CampaignDetail = () => {
                 <img 
                   src={campaign.imageUrl || fallbackImage} 
                   alt={campaign.title}
+                  loading="eager"
+                  decoding="async"
                   className="w-full h-full object-cover"
                   onError={() => setImageError(true)}
                 />
@@ -322,7 +324,7 @@ const CampaignDetail = () => {
 
             {/* Title & Creator */}
             <div>
-              <h1 className="font-display text-3xl md:text-4xl font-bold text-foreground mb-3">
+              <h1 className="font-display text-2xl sm:text-3xl md:text-4xl font-bold text-foreground mb-3 break-words">
                 {campaign.title}
               </h1>
               <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
@@ -461,7 +463,7 @@ const CampaignDetail = () => {
 
           {/* Sidebar */}
           <div className="space-y-6">
-            <Card className="glass-card sticky top-24">
+            <Card className="glass-card lg:sticky lg:top-24">
               <CardContent className="pt-6 space-y-6">
                 {/* Amount Raised */}
                 <div>
