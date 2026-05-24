@@ -4,7 +4,7 @@
 
 // 👇 PASTE YOUR PINATA JWT HERE (between the quotes)
 // Get one at: https://app.pinata.cloud/developers/api-keys
-const PINATA_JWT = "";
+const PINATA_JWT = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySW5mb3JtYXRpb24iOnsiaWQiOiJjMjQ1MTRlMi1mMjcxLTQwYjktOGFjNy1mOTYwYTQyZDMxNmYiLCJlbWFpbCI6ImJvb25uZXR3b3JraW5nQGdtYWlsLmNvbSIsImVtYWlsX3ZlcmlmaWVkIjp0cnVlLCJwaW5fcG9saWN5Ijp7InJlZ2lvbnMiOlt7ImRlc2lyZWRSZXBsaWNhdGlvbkNvdW50IjoxLCJpZCI6IkZSQTEifSx7ImRlc2lyZWRSZXBsaWNhdGlvbkNvdW50IjoxLCJpZCI6Ik5ZQzEifV0sInZlcnNpb24iOjF9LCJtZmFfZW5hYmxlZCI6ZmFsc2UsInN0YXR1cyI6IkFDVElWRSJ9LCJhdXRoZW50aWNhdGlvblR5cGUiOiJzY29wZWRLZXkiLCJzY29wZWRLZXlLZXkiOiJiMmRkZjBmMzYxMTBjNmI2ZWEwNyIsInNjb3BlZEtleVNlY3JldCI6IjgyOWQ0NjY1YTk3ZTY1NDYwZDFlMWFjMDllODhkOWQ4NmQ1NDRkZDg5MTA5YWZkZWI1MDQzNTBmMDE0NDYwOGUiLCJleHAiOjE4MTExNjE5NDN9.XKNIWbOFrgRkvcYXovrK18XilEA886bMbGiGY63Gmr4";
 
 // 👇 (Optional) Paste your dedicated gateway domain here, e.g. "your-name.mypinata.cloud"
 // Leave as-is to use the public gateway.
