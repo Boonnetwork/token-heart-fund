@@ -28,7 +28,7 @@ export const uploadToPinata = async (
 ): Promise<PinataUploadResult> => {
   if (!PINATA_JWT) {
     throw new Error(
-      'Pinata is not configured. Add VITE_PINATA_JWT in Workspace Settings → Build Secrets.',
+      'Pinata is not configured. Open src/lib/pinata.ts and paste your JWT into PINATA_JWT.',
     );
   }
 
