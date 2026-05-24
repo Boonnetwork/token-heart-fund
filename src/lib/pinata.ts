@@ -2,10 +2,13 @@
 // Requires VITE_PINATA_JWT (Build Secret) and optionally VITE_PINATA_GATEWAY
 // (e.g. "your-subdomain.mypinata.cloud"). Falls back to the public gateway.
 
-const PINATA_JWT = import.meta.env.VITE_PINATA_JWT as string | undefined;
-const PINATA_GATEWAY =
-  (import.meta.env.VITE_PINATA_GATEWAY as string | undefined) ||
-  'gateway.pinata.cloud';
+// 👇 PASTE YOUR PINATA JWT HERE (between the quotes)
+// Get one at: https://app.pinata.cloud/developers/api-keys
+const PINATA_JWT = "";
+
+// 👇 (Optional) Paste your dedicated gateway domain here, e.g. "your-name.mypinata.cloud"
+// Leave as-is to use the public gateway.
+const PINATA_GATEWAY = "gateway.pinata.cloud";
 
 export const isPinataConfigured = (): boolean => Boolean(PINATA_JWT);
 
@@ -25,7 +28,7 @@ export const uploadToPinata = async (
 ): Promise<PinataUploadResult> => {
   if (!PINATA_JWT) {
     throw new Error(
-      'Pinata is not configured. Add VITE_PINATA_JWT in Workspace Settings → Build Secrets.',
+      'Pinata is not configured. Open src/lib/pinata.ts and paste your JWT into PINATA_JWT.',
     );
   }
 
