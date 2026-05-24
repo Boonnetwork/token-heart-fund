@@ -9,9 +9,11 @@ import { Card, CardContent } from '@/components/ui/card';
 import { useWallet } from '@/contexts/WalletContext';
 import { useContracts } from '@/contexts/ContractContext';
 import { useCrowdfunding } from '@/hooks/useCrowdfunding';
-import { Rocket, Wallet, Image, AlertCircle, Loader2 } from 'lucide-react';
+import { Rocket, Wallet, Image, AlertCircle, Loader2, Upload } from 'lucide-react';
 import { toast } from 'sonner';
 import { campaignSchema, sanitizeText } from '@/lib/validation';
+import { Progress } from '@/components/ui/progress';
+import { uploadToPinata, isPinataConfigured } from '@/lib/pinata';
 
 const CreateCampaign = () => {
   const navigate = useNavigate();
@@ -22,6 +24,9 @@ const CreateCampaign = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [imagePreview, setImagePreview] = useState<string>('');
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [isUploading, setIsUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const fileInputRef = React.useRef<HTMLInputElement>(null);
   const [formData, setFormData] = useState({
     title: '',
     shortDescription: '',
@@ -56,9 +61,33 @@ const CreateCampaign = () => {
     }
   };
 
+  const handleFileUpload = async (file: File) => {
+    if (!isPinataConfigured()) {
+      toast.error('Pinata is not configured. Ask the admin to add VITE_PINATA_JWT.');
+      return;
+    }
+    setIsUploading(true);
+    setUploadProgress(0);
+    setErrors((prev) => ({ ...prev, imageUrl: '' }));
+    try {
+      const { url } = await uploadToPinata(file, setUploadProgress);
+      setFormData((prev) => ({ ...prev, imageUrl: url }));
+      setImagePreview(url);
+      toast.success('Image uploaded to IPFS');
+    } catch (err: any) {
+      toast.error(err?.message || 'Upload failed');
+      setErrors((prev) => ({ ...prev, imageUrl: err?.message || 'Upload failed' }));
+    } finally {
+      setIsUploading(false);
+      setUploadProgress(0);
+      if (fileInputRef.current) fileInputRef.current.value = '';
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrors({});
+    
     
     if (!isConnected) {
       toast.error('Please connect your wallet first');
@@ -241,15 +270,47 @@ const CreateCampaign = () => {
               <div className="space-y-2">
                 <Label htmlFor="imageUrl">Campaign Image</Label>
                 <div className="space-y-3">
-                  <Input 
-                    id="imageUrl"
-                    type="url"
-                    placeholder="https://... (image URL or IPFS link)" 
-                    value={formData.imageUrl}
-                    onChange={(e) => handleImageUrlChange(e.target.value)}
-                    className={errors.imageUrl ? 'border-destructive' : ''}
-                  />
+                  <div className="flex flex-col sm:flex-row gap-2">
+                    <Input
+                      id="imageUrl"
+                      type="url"
+                      placeholder="https://... or ipfs link"
+                      value={formData.imageUrl}
+                      onChange={(e) => handleImageUrlChange(e.target.value)}
+                      className={errors.imageUrl ? 'border-destructive flex-1' : 'flex-1'}
+                      disabled={isUploading}
+                    />
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={(e) => {
+                        const f = e.target.files?.[0];
+                        if (f) handleFileUpload(f);
+                      }}
+                    />
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => fileInputRef.current?.click()}
+                      disabled={isUploading || !isPinataConfigured()}
+                      title={!isPinataConfigured() ? 'Pinata not configured' : 'Upload to IPFS'}
+                    >
+                      {isUploading ? (
+                        <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Uploading…</>
+                      ) : (
+                        <><Upload className="w-4 h-4 mr-2" />Upload to IPFS</>
+                      )}
+                    </Button>
+                  </div>
+                  {isUploading && <Progress value={uploadProgress} className="h-2" />}
                   {errors.imageUrl && <p className="text-destructive text-xs">{errors.imageUrl}</p>}
+                  {!isPinataConfigured() && (
+                    <p className="text-xs text-muted-foreground">
+                      Tip: enable file uploads by adding <code>VITE_PINATA_JWT</code> in Workspace Settings → Build Secrets.
+                    </p>
+                  )}
                   
                   {/* Image Preview */}
                   {imagePreview ? (
