@@ -4,24 +4,44 @@ import { Layout } from '@/components/Layout';
 import { Button } from '@/components/ui/button';
 import { CampaignCard, Campaign } from '@/components/CampaignCard';
 import { useCrowdfunding } from '@/hooks/useCrowdfunding';
-import { Rocket, Shield, Zap, Users, ArrowRight, Coins, Lock, Globe, Loader2, Wallet, Search, Heart, BadgeCheck, Percent, Vote, Sprout } from 'lucide-react';
+import { Rocket, Shield, Zap, Users, ArrowRight, Coins, Lock, Globe, Loader2, Wallet, Search, Heart, BadgeCheck, HandCoins, Cog, Receipt, Gem, Landmark, Check } from 'lucide-react';
 
-const businessPillars = [
+const platformSteps = [
   {
-    icon: Percent,
-    title: 'A Fair Platform Fee',
-    description: 'We take just 2.5% — and only when a campaign actually hits its goal. No listing fees, no monthly charges, no surprises buried in the fine print.',
+    number: '1',
+    icon: Rocket,
+    title: 'Create Campaigns',
+    description: 'Anyone can launch a fundraising campaign — smart contracts securely manage the funds on-chain.',
+    listLabel: 'Built for:',
+    items: ['Startups', 'Personal causes', 'NGOs', 'Open-source projects', 'Charity initiatives', 'Creative projects', 'Community funding'],
   },
   {
-    icon: Vote,
-    title: 'CFI Token Utility',
-    description: 'CFI isn\'t just the currency of the platform — holders get reduced fees, a real vote in governance, and access to staking rewards and community incentives.',
+    number: '2',
+    icon: HandCoins,
+    title: 'Contribute Securely',
+    description: 'Supporters contribute using the native token. Every transaction is publicly verifiable on the blockchain.',
+    listLabel: 'Accepted:',
+    items: ['The Native Token'],
   },
   {
-    icon: Sprout,
-    title: 'Treasury Reinvested',
-    description: 'A share of every fee goes back into what keeps the platform healthy: security audits, liquidity, community grants, and ongoing development.',
+    number: '3',
+    icon: Cog,
+    title: 'Automated Fund Distribution',
+    description: 'No middlemen. Funds are released automatically by the rules written into the contract.',
+    listLabel: 'Released based on:',
+    items: ['Campaign success conditions', 'Smart contract rules', 'Time-based campaign completion'],
   },
+];
+
+const tokenUtilities = ['Reduced platform fees', 'Governance voting', 'Staking rewards', 'Community incentives'];
+const treasuryUses = ['Security audits', 'Ecosystem expansion', 'Community grants', 'Liquidity growth', 'Platform development'];
+
+const whyBlockchain = [
+  { title: 'Global Accessibility', description: 'Anyone with a crypto wallet can participate from anywhere.' },
+  { title: 'Full Transparency', description: 'All campaign transactions are verifiable on-chain.' },
+  { title: 'Lower Fees', description: 'Reduced intermediary costs compared to traditional platforms.' },
+  { title: 'Faster Payments', description: 'Smart contracts automate fund distribution globally.' },
+  { title: 'Community Governance', description: 'Users help shape the future of the ecosystem.' },
 ];
 
 const features = [
