@@ -182,51 +182,154 @@ const Index = () => {
         </div>
       </section>
 
-      {/* Business Model */}
+      {/* Business Model — Platform, Revenue & Why Blockchain */}
       <section className="py-12 sm:py-20">
-        <div className="container mx-auto px-4">
-          <div className="text-center mb-12 max-w-2xl mx-auto">
+        <div className="container mx-auto px-4 space-y-20">
+
+          {/* Intro */}
+          <div className="text-center max-w-3xl mx-auto">
             <span className="text-xs font-mono text-primary font-bold tracking-wider">OUR MODEL</span>
-            <h2 className="font-display text-3xl md:text-4xl font-bold text-foreground mt-2 mb-4">
-              Built to Last, Owned by the Community
+            <h2 className="font-display text-3xl md:text-5xl font-bold text-foreground mt-3 mb-5 leading-tight">
+              Transparent. Community-Driven.<br />Built for Global Fundraising.
             </h2>
-            <p className="text-muted-foreground">
-              We keep the lights on without squeezing creators. Here's exactly where the money goes and how the CFI token ties it all together.
+            <p className="text-muted-foreground text-base sm:text-lg">
+              Our platform combines decentralized crowdfunding with blockchain transparency to create a fair ecosystem for campaign creators, contributors, and communities worldwide.
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
-            {businessPillars.map((pillar, index) => (
-              <div
-                key={pillar.title}
-                className="glass-card p-6 sm:p-8 animate-fade-in-up"
-                style={{ animationDelay: `${index * 0.1}s` }}
-              >
-                <div className="w-12 h-12 rounded-xl bg-gradient-primary flex items-center justify-center mb-5">
-                  <pillar.icon className="w-6 h-6 text-primary-foreground" />
+          {/* How The Platform Works */}
+          <div>
+            <div className="text-center mb-10">
+              <h3 className="font-display text-2xl md:text-3xl font-bold text-foreground">How The Platform Works</h3>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {platformSteps.map((step, index) => (
+                <div
+                  key={step.number}
+                  className="glass-card p-6 sm:p-8 animate-fade-in-up flex flex-col"
+                  style={{ animationDelay: `${index * 0.1}s` }}
+                >
+                  <div className="flex items-center gap-3 mb-5">
+                    <div className="w-12 h-12 rounded-xl bg-gradient-primary flex items-center justify-center">
+                      <step.icon className="w-6 h-6 text-primary-foreground" />
+                    </div>
+                    <span className="text-xs font-mono text-primary font-bold tracking-wider">STEP {step.number}</span>
+                  </div>
+                  <h4 className="font-display text-lg font-semibold text-foreground mb-2">{step.title}</h4>
+                  <p className="text-muted-foreground text-sm leading-relaxed mb-5">{step.description}</p>
+                  <p className="text-xs uppercase tracking-wider text-muted-foreground mb-3">{step.listLabel}</p>
+                  <ul className="space-y-2">
+                    {step.items.map((it) => (
+                      <li key={it} className="flex items-start gap-2 text-sm text-foreground/90">
+                        <Check className="w-4 h-4 text-primary mt-0.5 shrink-0" />
+                        <span>{it}</span>
+                      </li>
+                    ))}
+                  </ul>
                 </div>
-                <h3 className="font-display text-lg font-semibold text-foreground mb-2">{pillar.title}</h3>
-                <p className="text-muted-foreground text-sm leading-relaxed">{pillar.description}</p>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
 
-          <div className="glass-card p-6 sm:p-8 max-w-4xl mx-auto">
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 text-center">
-              <div>
-                <div className="font-display text-3xl font-bold gradient-text">2.5%</div>
-                <p className="text-xs text-muted-foreground mt-1 uppercase tracking-wider">Success Fee Only</p>
+          {/* Revenue Model */}
+          <div>
+            <div className="text-center mb-10 max-w-2xl mx-auto">
+              <span className="text-xs font-mono text-primary font-bold tracking-wider">REVENUE MODEL</span>
+              <h3 className="font-display text-2xl md:text-3xl font-bold text-foreground mt-2">Platform Fee</h3>
+              <p className="text-muted-foreground mt-3">
+                A small percentage fee is charged only on successfully funded campaigns.
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div className="glass-card p-6 sm:p-8 text-center md:col-span-1">
+                <Receipt className="w-8 h-8 text-primary mx-auto mb-4" />
+                <div className="font-display text-5xl font-bold gradient-text">2%</div>
+                <p className="text-sm text-muted-foreground mt-2">Platform fee on successful campaigns</p>
               </div>
-              <div className="sm:border-x border-border/50">
-                <div className="font-display text-3xl font-bold gradient-text">0</div>
-                <p className="text-xs text-muted-foreground mt-1 uppercase tracking-wider">Hidden Charges</p>
-              </div>
-              <div>
-                <div className="font-display text-3xl font-bold gradient-text">100%</div>
-                <p className="text-xs text-muted-foreground mt-1 uppercase tracking-wider">On-Chain & Auditable</p>
+              <div className="glass-card p-6 sm:p-8 md:col-span-2">
+                <h4 className="font-display text-lg font-semibold text-foreground mb-4">Typical structure</h4>
+                <ul className="space-y-3">
+                  <li className="flex items-start gap-3 text-sm text-foreground/90">
+                    <Check className="w-4 h-4 text-primary mt-0.5 shrink-0" />
+                    <span>2% platform fee</span>
+                  </li>
+                  <li className="flex items-start gap-3 text-sm text-foreground/90">
+                    <Check className="w-4 h-4 text-primary mt-0.5 shrink-0" />
+                    <span>Lower than traditional crowdfunding platforms</span>
+                  </li>
+                  <li className="flex items-start gap-3 text-sm text-foreground/90">
+                    <Check className="w-4 h-4 text-primary mt-0.5 shrink-0" />
+                    <span>No hidden charges</span>
+                  </li>
+                </ul>
               </div>
             </div>
           </div>
+
+          {/* Token Utility + Treasury */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div className="glass-card p-6 sm:p-8">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-12 h-12 rounded-xl bg-gradient-primary flex items-center justify-center">
+                  <Gem className="w-6 h-6 text-primary-foreground" />
+                </div>
+                <h3 className="font-display text-xl font-bold text-foreground">Token Utility Ecosystem</h3>
+              </div>
+              <p className="text-muted-foreground text-sm mb-5">
+                Our native ecosystem token powers the platform economy.
+              </p>
+              <p className="text-xs uppercase tracking-wider text-muted-foreground mb-3">Token utilities include:</p>
+              <ul className="space-y-2">
+                {tokenUtilities.map((u) => (
+                  <li key={u} className="flex items-start gap-2 text-sm text-foreground/90">
+                    <Check className="w-4 h-4 text-primary mt-0.5 shrink-0" />
+                    <span>{u}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            <div className="glass-card p-6 sm:p-8">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-12 h-12 rounded-xl bg-gradient-primary flex items-center justify-center">
+                  <Landmark className="w-6 h-6 text-primary-foreground" />
+                </div>
+                <h3 className="font-display text-xl font-bold text-foreground">Treasury & Ecosystem Growth</h3>
+              </div>
+              <p className="text-muted-foreground text-sm mb-5">
+                A portion of platform revenue supports long-term sustainability.
+              </p>
+              <ul className="space-y-2">
+                {treasuryUses.map((u) => (
+                  <li key={u} className="flex items-start gap-2 text-sm text-foreground/90">
+                    <Check className="w-4 h-4 text-primary mt-0.5 shrink-0" />
+                    <span>{u}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
+
+          {/* Why Blockchain Crowdfunding */}
+          <div>
+            <div className="text-center mb-10 max-w-2xl mx-auto">
+              <h3 className="font-display text-2xl md:text-4xl font-bold text-foreground">Why Blockchain Crowdfunding?</h3>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              {whyBlockchain.map((item, index) => (
+                <div
+                  key={item.title}
+                  className="glass-card p-6 animate-fade-in-up"
+                  style={{ animationDelay: `${index * 0.05}s` }}
+                >
+                  <h4 className="font-display text-lg font-semibold text-foreground mb-2">{item.title}</h4>
+                  <p className="text-muted-foreground text-sm leading-relaxed">{item.description}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+
         </div>
       </section>
 
