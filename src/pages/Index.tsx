@@ -4,7 +4,25 @@ import { Layout } from '@/components/Layout';
 import { Button } from '@/components/ui/button';
 import { CampaignCard, Campaign } from '@/components/CampaignCard';
 import { useCrowdfunding } from '@/hooks/useCrowdfunding';
-import { Rocket, Shield, Zap, Users, ArrowRight, Coins, Lock, Globe, Loader2, Wallet, Search, Heart, BadgeCheck } from 'lucide-react';
+import { Rocket, Shield, Zap, Users, ArrowRight, Coins, Lock, Globe, Loader2, Wallet, Search, Heart, BadgeCheck, Percent, Vote, Sprout } from 'lucide-react';
+
+const businessPillars = [
+  {
+    icon: Percent,
+    title: 'A Fair Platform Fee',
+    description: 'We take just 2.5% — and only when a campaign actually hits its goal. No listing fees, no monthly charges, no surprises buried in the fine print.',
+  },
+  {
+    icon: Vote,
+    title: 'CFI Token Utility',
+    description: 'CFI isn\'t just the currency of the platform — holders get reduced fees, a real vote in governance, and access to staking rewards and community incentives.',
+  },
+  {
+    icon: Sprout,
+    title: 'Treasury Reinvested',
+    description: 'A share of every fee goes back into what keeps the platform healthy: security audits, liquidity, community grants, and ongoing development.',
+  },
+];
 
 const features = [
   { icon: Shield, title: 'Fully Decentralized', description: 'All funds are managed by smart contracts with complete transparency.' },
@@ -144,8 +162,57 @@ const Index = () => {
         </div>
       </section>
 
+      {/* Business Model */}
+      <section className="py-12 sm:py-20">
+        <div className="container mx-auto px-4">
+          <div className="text-center mb-12 max-w-2xl mx-auto">
+            <span className="text-xs font-mono text-primary font-bold tracking-wider">OUR MODEL</span>
+            <h2 className="font-display text-3xl md:text-4xl font-bold text-foreground mt-2 mb-4">
+              Built to Last, Owned by the Community
+            </h2>
+            <p className="text-muted-foreground">
+              We keep the lights on without squeezing creators. Here's exactly where the money goes and how the CFI token ties it all together.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
+            {businessPillars.map((pillar, index) => (
+              <div
+                key={pillar.title}
+                className="glass-card p-6 sm:p-8 animate-fade-in-up"
+                style={{ animationDelay: `${index * 0.1}s` }}
+              >
+                <div className="w-12 h-12 rounded-xl bg-gradient-primary flex items-center justify-center mb-5">
+                  <pillar.icon className="w-6 h-6 text-primary-foreground" />
+                </div>
+                <h3 className="font-display text-lg font-semibold text-foreground mb-2">{pillar.title}</h3>
+                <p className="text-muted-foreground text-sm leading-relaxed">{pillar.description}</p>
+              </div>
+            ))}
+          </div>
+
+          <div className="glass-card p-6 sm:p-8 max-w-4xl mx-auto">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 text-center">
+              <div>
+                <div className="font-display text-3xl font-bold gradient-text">2.5%</div>
+                <p className="text-xs text-muted-foreground mt-1 uppercase tracking-wider">Success Fee Only</p>
+              </div>
+              <div className="sm:border-x border-border/50">
+                <div className="font-display text-3xl font-bold gradient-text">0</div>
+                <p className="text-xs text-muted-foreground mt-1 uppercase tracking-wider">Hidden Charges</p>
+              </div>
+              <div>
+                <div className="font-display text-3xl font-bold gradient-text">100%</div>
+                <p className="text-xs text-muted-foreground mt-1 uppercase tracking-wider">On-Chain & Auditable</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* Featured Campaigns */}
       <section className="py-12 sm:py-20 bg-card/30">
+
         <div className="container mx-auto px-4">
           <div className="flex items-center justify-between mb-10">
             <div>
