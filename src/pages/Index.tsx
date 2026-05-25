@@ -4,7 +4,25 @@ import { Layout } from '@/components/Layout';
 import { Button } from '@/components/ui/button';
 import { CampaignCard, Campaign } from '@/components/CampaignCard';
 import { useCrowdfunding } from '@/hooks/useCrowdfunding';
-import { Rocket, Shield, Zap, Users, ArrowRight, Coins, Lock, Globe, Loader2, Wallet, Search, Heart, BadgeCheck } from 'lucide-react';
+import { Rocket, Shield, Zap, Users, ArrowRight, Coins, Lock, Globe, Loader2, Wallet, Search, Heart, BadgeCheck, Percent, Vote, Sprout } from 'lucide-react';
+
+const businessPillars = [
+  {
+    icon: Percent,
+    title: 'A Fair Platform Fee',
+    description: 'We take just 2.5% — and only when a campaign actually hits its goal. No listing fees, no monthly charges, no surprises buried in the fine print.',
+  },
+  {
+    icon: Vote,
+    title: 'CFI Token Utility',
+    description: 'CFI isn\'t just the currency of the platform — holders get reduced fees, a real vote in governance, and access to staking rewards and community incentives.',
+  },
+  {
+    icon: Sprout,
+    title: 'Treasury Reinvested',
+    description: 'A share of every fee goes back into what keeps the platform healthy: security audits, liquidity, community grants, and ongoing development.',
+  },
+];
 
 const features = [
   { icon: Shield, title: 'Fully Decentralized', description: 'All funds are managed by smart contracts with complete transparency.' },
