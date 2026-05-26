@@ -19,9 +19,9 @@ const platformSteps = [
     number: '2',
     icon: HandCoins,
     title: 'Contribute Securely',
-    description: 'Supporters contribute using the native token. Every transaction is publicly verifiable on the blockchain.',
-    listLabel: 'Accepted:',
-    items: ['The Native Token'],
+    description: 'Supporters contribute using the native token. Every transaction is publicly verifiable on the blockchain. The only accepted token is the Native Token.',
+    listLabel: '',
+    items: [] as string[],
   },
   {
     number: '3',
@@ -217,15 +217,19 @@ const Index = () => {
                   </div>
                   <h4 className="font-display text-lg font-semibold text-foreground mb-2">{step.title}</h4>
                   <p className="text-muted-foreground text-sm leading-relaxed mb-5">{step.description}</p>
-                  <p className="text-xs uppercase tracking-wider text-muted-foreground mb-3">{step.listLabel}</p>
-                  <ul className="space-y-2">
-                    {step.items.map((it) => (
-                      <li key={it} className="flex items-start gap-2 text-sm text-foreground/90">
-                        <Check className="w-4 h-4 text-primary mt-0.5 shrink-0" />
-                        <span>{it}</span>
-                      </li>
-                    ))}
-                  </ul>
+                  {step.items.length > 0 && (
+                    <>
+                      <p className="text-xs uppercase tracking-wider text-muted-foreground mb-3">{step.listLabel}</p>
+                      <ul className="space-y-2">
+                        {step.items.map((it) => (
+                          <li key={it} className="flex items-start gap-2 text-sm text-foreground/90">
+                            <span className="w-1.5 h-1.5 rounded-full bg-primary mt-2 shrink-0" />
+                            <span>{it}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </>
+                  )}
                 </div>
               ))}
             </div>
@@ -251,15 +255,15 @@ const Index = () => {
                 <h4 className="font-display text-lg font-semibold text-foreground mb-4">Typical structure</h4>
                 <ul className="space-y-3">
                   <li className="flex items-start gap-3 text-sm text-foreground/90">
-                    <Check className="w-4 h-4 text-primary mt-0.5 shrink-0" />
+                    <span className="w-1.5 h-1.5 rounded-full bg-primary mt-2 shrink-0" />
                     <span>2% platform fee</span>
                   </li>
                   <li className="flex items-start gap-3 text-sm text-foreground/90">
-                    <Check className="w-4 h-4 text-primary mt-0.5 shrink-0" />
+                    <span className="w-1.5 h-1.5 rounded-full bg-primary mt-2 shrink-0" />
                     <span>Lower than traditional crowdfunding platforms</span>
                   </li>
                   <li className="flex items-start gap-3 text-sm text-foreground/90">
-                    <Check className="w-4 h-4 text-primary mt-0.5 shrink-0" />
+                    <span className="w-1.5 h-1.5 rounded-full bg-primary mt-2 shrink-0" />
                     <span>No hidden charges</span>
                   </li>
                 </ul>
@@ -283,7 +287,7 @@ const Index = () => {
               <ul className="space-y-2">
                 {tokenUtilities.map((u) => (
                   <li key={u} className="flex items-start gap-2 text-sm text-foreground/90">
-                    <Check className="w-4 h-4 text-primary mt-0.5 shrink-0" />
+                    <span className="w-1.5 h-1.5 rounded-full bg-primary mt-2 shrink-0" />
                     <span>{u}</span>
                   </li>
                 ))}
@@ -303,7 +307,7 @@ const Index = () => {
               <ul className="space-y-2">
                 {treasuryUses.map((u) => (
                   <li key={u} className="flex items-start gap-2 text-sm text-foreground/90">
-                    <Check className="w-4 h-4 text-primary mt-0.5 shrink-0" />
+                    <span className="w-1.5 h-1.5 rounded-full bg-primary mt-2 shrink-0" />
                     <span>{u}</span>
                   </li>
                 ))}
