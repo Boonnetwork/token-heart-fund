@@ -334,6 +334,119 @@ const Index = () => {
             </div>
           </div>
 
+          {/* Roadmap */}
+          <div>
+            <div className="text-center mb-10 max-w-2xl mx-auto">
+              <h3 className="font-display text-2xl md:text-4xl font-bold text-foreground">Roadmap (2025–2027)</h3>
+              <p className="text-muted-foreground mt-3 text-sm md:text-base">Our journey from prototype to multi-chain ecosystem.</p>
+            </div>
+
+            <div className="relative">
+              {/* Horizontal scroll container */}
+              <div className="overflow-x-auto pb-6 -mx-4 px-4 scroll-smooth snap-x snap-mandatory">
+                <div className="relative flex gap-5 min-w-max">
+                  {/* Connecting line */}
+                  <div className="absolute top-6 left-6 right-6 h-px bg-gradient-to-r from-primary/40 via-primary/20 to-primary/40 hidden md:block" />
+
+                  {[
+                    {
+                      quarter: "Q3 2025",
+                      title: "Planning & Research",
+                      points: [
+                        "Finalise protocol design",
+                        "Tokenomics & legal framework",
+                        "Begin prototype smart contract development",
+                      ],
+                    },
+                    {
+                      quarter: "Q4 2025",
+                      title: "Development Phase I",
+                      points: [
+                        "Build core smart contract functionality",
+                        "Develop frontend prototype",
+                        "Initial community building",
+                      ],
+                    },
+                    {
+                      quarter: "Q1 2026",
+                      title: "Testnet Launch & Beta",
+                      points: [
+                        "Deploy CrowdFunder testnet on BNB Testnet",
+                        "Invite community testers",
+                        "Usability and security testing",
+                        "Engage advisors and refine features",
+                      ],
+                    },
+                    {
+                      quarter: "Q2 2026",
+                      title: "Mainnet & Token Launch",
+                      points: [
+                        "Launch mainnet platform on BNB Chain",
+                        "Private + public CFI token sale",
+                        "Marketing and partnerships",
+                        "Get listed on exchanges",
+                      ],
+                    },
+                    {
+                      quarter: "Q3 2026",
+                      title: "Community & DAO",
+                      points: [
+                        "Launch CFI staking reward program",
+                        "Begin governance voting on proposals",
+                        "Onboard early NGOs and creators",
+                      ],
+                    },
+                    {
+                      quarter: "Q4 2026",
+                      title: "Feature Expansion",
+                      points: [
+                        "Integrate NFT rewards & advanced KYC",
+                        "NGO and academic collaborations",
+                        "Continued audits & compliance reviews",
+                      ],
+                    },
+                    {
+                      quarter: "Q1 2027",
+                      title: "Multi-chain Expansion",
+                      points: [
+                        "Evaluate Ethereum, Polygon bridging",
+                        "Expand global presence",
+                        "Localized campaigns & multilingual UI",
+                      ],
+                    },
+                  ].map((phase, index) => (
+                    <div
+                      key={phase.quarter}
+                      className="snap-start w-72 sm:w-80 shrink-0 relative animate-fade-in-up"
+                      style={{ animationDelay: `${index * 0.05}s` }}
+                    >
+                      {/* Node dot */}
+                      <div className="flex items-center gap-3 mb-4">
+                        <div className="w-12 h-12 rounded-full bg-gradient-to-br from-primary to-secondary flex items-center justify-center shadow-glow shrink-0 relative z-10">
+                          <span className="text-primary-foreground font-bold text-xs">{phase.quarter.split(" ")[0]}</span>
+                        </div>
+                        <div className="text-xs text-muted-foreground font-medium">{phase.quarter.split(" ")[1]}</div>
+                      </div>
+
+                      <div className="glass-card p-5 h-full">
+                        <h4 className="font-display text-lg font-semibold text-foreground mb-3">{phase.title}</h4>
+                        <ul className="space-y-2">
+                          {phase.points.map((p) => (
+                            <li key={p} className="flex items-start gap-2 text-sm text-foreground/90">
+                              <span className="w-1.5 h-1.5 rounded-full bg-primary mt-2 shrink-0" />
+                              <span>{p}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+              <p className="text-center text-xs text-muted-foreground mt-2">← Scroll horizontally to view all phases →</p>
+            </div>
+          </div>
+
         </div>
       </section>
 
