@@ -217,15 +217,19 @@ const Index = () => {
                   </div>
                   <h4 className="font-display text-lg font-semibold text-foreground mb-2">{step.title}</h4>
                   <p className="text-muted-foreground text-sm leading-relaxed mb-5">{step.description}</p>
-                  <p className="text-xs uppercase tracking-wider text-muted-foreground mb-3">{step.listLabel}</p>
-                  <ul className="space-y-2">
-                    {step.items.map((it) => (
-                      <li key={it} className="flex items-start gap-2 text-sm text-foreground/90">
-                        <Check className="w-4 h-4 text-primary mt-0.5 shrink-0" />
-                        <span>{it}</span>
-                      </li>
-                    ))}
-                  </ul>
+                  {step.items.length > 0 && (
+                    <>
+                      <p className="text-xs uppercase tracking-wider text-muted-foreground mb-3">{step.listLabel}</p>
+                      <ul className="space-y-2">
+                        {step.items.map((it) => (
+                          <li key={it} className="flex items-start gap-2 text-sm text-foreground/90">
+                            <span className="w-1.5 h-1.5 rounded-full bg-primary mt-2 shrink-0" />
+                            <span>{it}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </>
+                  )}
                 </div>
               ))}
             </div>
