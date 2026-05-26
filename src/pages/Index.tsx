@@ -19,9 +19,9 @@ const platformSteps = [
     number: '2',
     icon: HandCoins,
     title: 'Contribute Securely',
-    description: 'Supporters contribute using the native token. Every transaction is publicly verifiable on the blockchain.',
-    listLabel: 'Accepted:',
-    items: ['The Native Token'],
+    description: 'Supporters contribute using the native token. Every transaction is publicly verifiable on the blockchain. The only accepted token is the Native Token.',
+    listLabel: '',
+    items: [] as string[],
   },
   {
     number: '3',
