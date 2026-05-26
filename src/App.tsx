@@ -7,6 +7,7 @@ import { WalletProvider } from "@/contexts/WalletContext";
 import { ContractProvider } from "@/contexts/ContractContext";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { NetworkWarning } from "@/components/NetworkWarning";
+import { ThemeProvider } from "@/components/ThemeProvider";
 import Index from "./pages/Index";
 import Campaigns from "./pages/Campaigns";
 import CampaignDetail from "./pages/CampaignDetail";
@@ -19,28 +20,30 @@ const queryClient = new QueryClient();
 
 const App = () => (
   <ErrorBoundary>
-    <QueryClientProvider client={queryClient}>
-      <WalletProvider>
-        <ContractProvider>
-          <TooltipProvider>
-            <Toaster />
-            <Sonner />
-            <NetworkWarning />
-            <BrowserRouter>
-              <Routes>
-                <Route path="/" element={<Index />} />
-                <Route path="/campaigns" element={<Campaigns />} />
-                <Route path="/campaign/:id" element={<CampaignDetail />} />
-                <Route path="/create" element={<CreateCampaign />} />
-                <Route path="/dashboard" element={<Dashboard />} />
-                <Route path="/settings" element={<Settings />} />
-                <Route path="*" element={<NotFound />} />
-              </Routes>
-            </BrowserRouter>
-          </TooltipProvider>
-        </ContractProvider>
-      </WalletProvider>
-    </QueryClientProvider>
+    <ThemeProvider>
+      <QueryClientProvider client={queryClient}>
+        <WalletProvider>
+          <ContractProvider>
+            <TooltipProvider>
+              <Toaster />
+              <Sonner />
+              <NetworkWarning />
+              <BrowserRouter>
+                <Routes>
+                  <Route path="/" element={<Index />} />
+                  <Route path="/campaigns" element={<Campaigns />} />
+                  <Route path="/campaign/:id" element={<CampaignDetail />} />
+                  <Route path="/create" element={<CreateCampaign />} />
+                  <Route path="/dashboard" element={<Dashboard />} />
+                  <Route path="/settings" element={<Settings />} />
+                  <Route path="*" element={<NotFound />} />
+                </Routes>
+              </BrowserRouter>
+            </TooltipProvider>
+          </ContractProvider>
+        </WalletProvider>
+      </QueryClientProvider>
+    </ThemeProvider>
   </ErrorBoundary>
 );
 

@@ -3,6 +3,7 @@ import { Link, useLocation } from 'react-router-dom';
 import { Menu, X, Rocket, LayoutDashboard, PlusCircle, Home } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { WalletButton } from '@/components/WalletButton';
+import { ThemeToggle } from '@/components/ThemeToggle';
 import { cn } from '@/lib/utils';
 
 const navLinks = [
@@ -54,7 +55,8 @@ export const Navbar: React.FC = () => {
           </div>
 
           {/* Wallet Button - Always visible */}
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2">
+            <ThemeToggle />
             <WalletButton />
             
             {/* Mobile Menu Button */}
