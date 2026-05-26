@@ -255,15 +255,15 @@ const Index = () => {
                 <h4 className="font-display text-lg font-semibold text-foreground mb-4">Typical structure</h4>
                 <ul className="space-y-3">
                   <li className="flex items-start gap-3 text-sm text-foreground/90">
-                    <Check className="w-4 h-4 text-primary mt-0.5 shrink-0" />
+                    <span className="w-1.5 h-1.5 rounded-full bg-primary mt-2 shrink-0" />
                     <span>2% platform fee</span>
                   </li>
                   <li className="flex items-start gap-3 text-sm text-foreground/90">
-                    <Check className="w-4 h-4 text-primary mt-0.5 shrink-0" />
+                    <span className="w-1.5 h-1.5 rounded-full bg-primary mt-2 shrink-0" />
                     <span>Lower than traditional crowdfunding platforms</span>
                   </li>
                   <li className="flex items-start gap-3 text-sm text-foreground/90">
-                    <Check className="w-4 h-4 text-primary mt-0.5 shrink-0" />
+                    <span className="w-1.5 h-1.5 rounded-full bg-primary mt-2 shrink-0" />
                     <span>No hidden charges</span>
                   </li>
                 </ul>
@@ -287,7 +287,7 @@ const Index = () => {
               <ul className="space-y-2">
                 {tokenUtilities.map((u) => (
                   <li key={u} className="flex items-start gap-2 text-sm text-foreground/90">
-                    <Check className="w-4 h-4 text-primary mt-0.5 shrink-0" />
+                    <span className="w-1.5 h-1.5 rounded-full bg-primary mt-2 shrink-0" />
                     <span>{u}</span>
                   </li>
                 ))}
@@ -307,7 +307,7 @@ const Index = () => {
               <ul className="space-y-2">
                 {treasuryUses.map((u) => (
                   <li key={u} className="flex items-start gap-2 text-sm text-foreground/90">
-                    <Check className="w-4 h-4 text-primary mt-0.5 shrink-0" />
+                    <span className="w-1.5 h-1.5 rounded-full bg-primary mt-2 shrink-0" />
                     <span>{u}</span>
                   </li>
                 ))}
