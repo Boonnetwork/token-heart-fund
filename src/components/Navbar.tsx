@@ -27,7 +27,7 @@ export const Navbar: React.FC = () => {
               <Rocket className="w-5 h-5 text-primary-foreground" />
             </div>
             <span className="font-display text-xl font-bold gradient-text hidden sm:block">
-              CrowdChain
+              ChainFunder
             </span>
           </Link>
 

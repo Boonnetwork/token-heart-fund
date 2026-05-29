@@ -158,7 +158,7 @@ const Index = () => {
         <div className="container mx-auto px-4">
           <div className="text-center mb-12">
             <h2 className="font-display text-3xl md:text-4xl font-bold text-foreground mb-4">
-              Why Choose CrowdChain?
+              Why Choose ChainFunder?
             </h2>
             <p className="text-muted-foreground max-w-2xl mx-auto">
               Built on blockchain technology for maximum transparency and security.
@@ -210,9 +210,6 @@ const Index = () => {
                   style={{ animationDelay: `${index * 0.1}s` }}
                 >
                   <div className="flex items-center gap-3 mb-5">
-                    <div className="w-12 h-12 rounded-xl bg-gradient-primary flex items-center justify-center">
-                      <step.icon className="w-6 h-6 text-primary-foreground" />
-                    </div>
                     <span className="text-xs font-mono text-primary font-bold tracking-wider">STEP {step.number}</span>
                   </div>
                   <h4 className="font-display text-lg font-semibold text-foreground mb-2">{step.title}</h4>

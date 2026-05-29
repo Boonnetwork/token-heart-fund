@@ -4,10 +4,10 @@ import { Rocket, Twitter, Github, MessageCircle, ExternalLink, Send } from 'luci
 
 // Social links - can be customized
 const SOCIAL_LINKS = {
-  twitter: 'https://twitter.com/crowdchain',
-  github: 'https://github.com/crowdchain',
-  telegram: 'https://t.me/crowdchain',
-  discord: 'https://discord.gg/crowdchain',
+  twitter: 'https://twitter.com/chainfunder',
+  github: 'https://github.com/chainfunder',
+  telegram: 'https://t.me/chainfunder',
+  discord: 'https://discord.gg/chainfunder',
 };
 
 export const Footer = forwardRef<HTMLElement>((_, ref) => {
@@ -22,7 +22,7 @@ export const Footer = forwardRef<HTMLElement>((_, ref) => {
                 <Rocket className="w-5 h-5 text-primary-foreground" />
               </div>
               <span className="font-display text-xl font-bold gradient-text">
-                CrowdChain
+                ChainFunder
               </span>
             </Link>
             <p className="text-muted-foreground max-w-md mb-6">
@@ -134,7 +134,7 @@ export const Footer = forwardRef<HTMLElement>((_, ref) => {
 
         <div className="border-t border-border/50 mt-8 pt-8 flex flex-col sm:flex-row justify-between items-center gap-4">
           <p className="text-muted-foreground text-sm">
-            © {new Date().getFullYear()} CrowdChain. All rights reserved.
+            © {new Date().getFullYear()} ChainFunder. All rights reserved.
           </p>
           <p className="text-muted-foreground text-sm flex items-center gap-2">
             <span className="w-2 h-2 rounded-full bg-emerald animate-pulse" />
