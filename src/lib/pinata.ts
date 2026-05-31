@@ -32,14 +32,16 @@ export const uploadToPinata = async (
     );
   }
 
-  if (!file.type.startsWith('image/')) {
-    throw new Error('Only image files are allowed.');
+  const isImage = file.type.startsWith('image/');
+  const isVideo = file.type.startsWith('video/');
+  if (!isImage && !isVideo) {
+    throw new Error('Only image or video files are allowed.');
   }
 
-  // 10 MB cap to keep things snappy
-  const MAX_BYTES = 10 * 1024 * 1024;
+  // 100 MB cap (videos can be large)
+  const MAX_BYTES = 100 * 1024 * 1024;
   if (file.size > MAX_BYTES) {
-    throw new Error('Image must be smaller than 10 MB.');
+    throw new Error('File must be smaller than 100 MB.');
   }
 
   const formData = new FormData();

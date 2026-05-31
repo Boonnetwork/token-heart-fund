@@ -88,6 +88,11 @@ export const Footer = forwardRef<HTMLElement>((_, ref) => {
                   Dashboard
                 </Link>
               </li>
+              <li>
+                <Link to="/blog" className="text-muted-foreground hover:text-primary transition-colors">
+                  Blog & News
+                </Link>
+              </li>
             </ul>
           </div>
 
