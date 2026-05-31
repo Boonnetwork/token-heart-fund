@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { Layout } from "@/components/Layout";
+import { MediaManager } from "@/components/MediaManager";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -198,6 +199,10 @@ const Settings = () => {
           <Save className="w-4 h-4 mr-2" />
           Save Settings
         </Button>
+
+        <div className="mt-10">
+          <MediaManager />
+        </div>
       </div>
     </Layout>
   );

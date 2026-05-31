@@ -3,6 +3,8 @@ import { Link } from 'react-router-dom';
 import { Layout } from '@/components/Layout';
 import { Button } from '@/components/ui/button';
 import { CampaignCard, Campaign } from '@/components/CampaignCard';
+import { MetricsCounter } from '@/components/MetricsCounter';
+import { HowItWorksMedia } from '@/components/HowItWorksMedia';
 import { useCrowdfunding } from '@/hooks/useCrowdfunding';
 import { Rocket, Shield, Zap, Users, ArrowRight, Coins, Lock, Globe, Loader2, Wallet, Search, Heart, BadgeCheck, HandCoins, Cog, Receipt, Gem, Landmark, Check } from 'lucide-react';
 
@@ -150,8 +152,12 @@ const Index = () => {
               </div>
             ))}
           </div>
+          <HowItWorksMedia />
         </div>
       </section>
+
+      {/* Live Metrics */}
+      <MetricsCounter />
 
       {/* Features */}
       <section className="py-12 sm:py-20">
