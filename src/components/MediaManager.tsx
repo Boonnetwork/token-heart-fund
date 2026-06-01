@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -21,8 +21,9 @@ import {
   MediaCategory,
   MediaItem,
 } from '@/lib/mediaLibrary';
-import { Trash2, Plus } from 'lucide-react';
+import { Trash2, Plus, ImagePlus, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
+import { uploadToPinata, isPinataConfigured } from '@/lib/pinata';
 
 const CATEGORIES: { value: MediaCategory; label: string }[] = [
   { value: 'blog', label: 'Blog Post' },
@@ -39,12 +40,50 @@ export const MediaManager: React.FC = () => {
     body: '',
     mediaUrl: '',
   });
+  const bodyRef = useRef<HTMLTextAreaElement>(null);
+  const inlineFileRef = useRef<HTMLInputElement>(null);
+  const [inlineUploading, setInlineUploading] = useState(false);
 
   useEffect(() => {
     const load = () => setItems(listMedia());
     load();
     return subscribeMedia(load);
   }, []);
+
+  const insertAtCursor = (snippet: string) => {
+    const ta = bodyRef.current;
+    if (!ta) {
+      setForm((f) => ({ ...f, body: f.body + snippet }));
+      return;
+    }
+    const start = ta.selectionStart ?? form.body.length;
+    const end = ta.selectionEnd ?? form.body.length;
+    const next = form.body.slice(0, start) + snippet + form.body.slice(end);
+    setForm((f) => ({ ...f, body: next }));
+    requestAnimationFrame(() => {
+      ta.focus();
+      const pos = start + snippet.length;
+      ta.setSelectionRange(pos, pos);
+    });
+  };
+
+  const handleInlineImage = async (file: File) => {
+    if (!isPinataConfigured()) {
+      toast.error('Pinata is not configured.');
+      return;
+    }
+    setInlineUploading(true);
+    try {
+      const { url } = await uploadToPinata(file);
+      insertAtCursor(`\n\n![${file.name}](${url})\n\n`);
+      toast.success('Image inserted');
+    } catch (e: any) {
+      toast.error(e?.message || 'Upload failed');
+    } finally {
+      setInlineUploading(false);
+      if (inlineFileRef.current) inlineFileRef.current.value = '';
+    }
+  };
 
   const handleAdd = () => {
     if (!form.title.trim()) {
@@ -97,13 +136,42 @@ export const MediaManager: React.FC = () => {
             </div>
           </div>
           <div className="space-y-2">
-            <Label>Body (optional)</Label>
+            <div className="flex items-center justify-between">
+              <Label>Body (optional)</Label>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => inlineFileRef.current?.click()}
+                disabled={inlineUploading}
+              >
+                {inlineUploading ? (
+                  <><Loader2 className="w-3.5 h-3.5 mr-1.5 animate-spin" />Uploading…</>
+                ) : (
+                  <><ImagePlus className="w-3.5 h-3.5 mr-1.5" />Insert image</>
+                )}
+              </Button>
+              <input
+                ref={inlineFileRef}
+                type="file"
+                accept="image/*,video/*"
+                className="hidden"
+                onChange={(e) => {
+                  const f = e.target.files?.[0];
+                  if (f) handleInlineImage(f);
+                }}
+              />
+            </div>
             <Textarea
-              rows={4}
+              ref={bodyRef}
+              rows={6}
               value={form.body}
               onChange={(e) => setForm({ ...form, body: e.target.value })}
-              placeholder="Write your update…"
+              placeholder="Write your update… Use the Insert image button to embed images inside the post."
             />
+            <p className="text-xs text-muted-foreground">
+              Inline images use markdown syntax: <code>![alt](url)</code>
+            </p>
           </div>
           <MediaUpload
             label="Image or Video (optional)"
