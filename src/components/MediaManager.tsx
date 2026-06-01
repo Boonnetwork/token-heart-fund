@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -21,8 +21,9 @@ import {
   MediaCategory,
   MediaItem,
 } from '@/lib/mediaLibrary';
-import { Trash2, Plus } from 'lucide-react';
+import { Trash2, Plus, ImagePlus, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
+import { uploadToPinata, isPinataConfigured } from '@/lib/pinata';
 
 const CATEGORIES: { value: MediaCategory; label: string }[] = [
   { value: 'blog', label: 'Blog Post' },
