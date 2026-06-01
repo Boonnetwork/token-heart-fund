@@ -136,13 +136,42 @@ export const MediaManager: React.FC = () => {
             </div>
           </div>
           <div className="space-y-2">
-            <Label>Body (optional)</Label>
+            <div className="flex items-center justify-between">
+              <Label>Body (optional)</Label>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => inlineFileRef.current?.click()}
+                disabled={inlineUploading}
+              >
+                {inlineUploading ? (
+                  <><Loader2 className="w-3.5 h-3.5 mr-1.5 animate-spin" />Uploading…</>
+                ) : (
+                  <><ImagePlus className="w-3.5 h-3.5 mr-1.5" />Insert image</>
+                )}
+              </Button>
+              <input
+                ref={inlineFileRef}
+                type="file"
+                accept="image/*,video/*"
+                className="hidden"
+                onChange={(e) => {
+                  const f = e.target.files?.[0];
+                  if (f) handleInlineImage(f);
+                }}
+              />
+            </div>
             <Textarea
-              rows={4}
+              ref={bodyRef}
+              rows={6}
               value={form.body}
               onChange={(e) => setForm({ ...form, body: e.target.value })}
-              placeholder="Write your update…"
+              placeholder="Write your update… Use the Insert image button to embed images inside the post."
             />
+            <p className="text-xs text-muted-foreground">
+              Inline images use markdown syntax: <code>![alt](url)</code>
+            </p>
           </div>
           <MediaUpload
             label="Image or Video (optional)"
