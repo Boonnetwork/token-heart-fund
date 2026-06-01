@@ -79,7 +79,7 @@ export const uploadToPinata = async (
         try {
           const data = JSON.parse(xhr.responseText);
           const cid: string = data.IpfsHash;
-          resolve({ cid, url: ipfsToHttp(cid, file.name) });
+          resolve({ cid, url: ipfsToHttp(cid) });
         } catch (err) {
           reject(new Error('Invalid response from Pinata.'));
         }
