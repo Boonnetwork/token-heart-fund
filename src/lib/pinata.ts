@@ -12,10 +12,20 @@ const PINATA_GATEWAY = "gateway.pinata.cloud";
 
 export const isPinataConfigured = (): boolean => Boolean(PINATA_JWT);
 
-export const ipfsToHttp = (cid: string, filename?: string): string => {
-  const base = `https://${PINATA_GATEWAY}/ipfs/${cid}`;
-  return filename ? `${base}/${encodeURIComponent(filename)}` : base;
-};
+// Public IPFS gateway fallbacks (used by <img onError>). The primary gateway
+// is configured above. We deliberately do NOT append a filename — a single
+// pinned file's CID resolves to the file directly; adding "/filename" turns
+// the request into a directory lookup and 404s.
+export const IPFS_GATEWAYS = [
+  PINATA_GATEWAY,
+  'ipfs.io',
+  'cloudflare-ipfs.com',
+  'dweb.link',
+  'gateway.pinata.cloud',
+];
+
+export const ipfsToHttp = (cid: string): string =>
+  `https://${PINATA_GATEWAY}/ipfs/${cid}`;
 
 export interface PinataUploadResult {
   cid: string;
