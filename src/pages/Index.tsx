@@ -156,8 +156,6 @@ const Index = () => {
         </div>
       </section>
 
-      {/* Live Metrics */}
-      <MetricsCounter />
 
       {/* Features */}
       <section className="py-12 sm:py-20">
@@ -446,12 +444,15 @@ const Index = () => {
                   ))}
                 </div>
               </div>
-              <p className="text-center text-xs text-muted-foreground mt-2">← Scroll horizontally to view all phases →</p>
+              
             </div>
           </div>
 
         </div>
       </section>
+
+      {/* Live Metrics */}
+      <MetricsCounter />
 
       {/* Featured Campaigns */}
       <section className="py-12 sm:py-20 bg-card/30">
@@ -462,7 +463,7 @@ const Index = () => {
               <h2 className="font-display text-3xl md:text-4xl font-bold text-foreground mb-2">
                 Featured Campaigns
               </h2>
-              <p className="text-muted-foreground">Discover innovative projects seeking funding</p>
+              <p className="text-muted-foreground">Discover Humanitarian causes seeking funding</p>
             </div>
             <Button variant="outline" asChild className="hidden sm:flex">
               <Link to="/campaigns">
