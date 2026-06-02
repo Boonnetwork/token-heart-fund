@@ -56,7 +56,7 @@ const features = [
 const howItWorks = [
   { step: '01', icon: Wallet, title: 'Connect Wallet', description: 'Connect your MetaMask or WalletConnect compatible wallet to get started.' },
   { step: '02', icon: Search, title: 'Browse Campaigns', description: 'Explore active campaigns or create your own fundraising project.' },
-  { step: '03', icon: Heart, title: 'Donate Tokens', description: 'Support projects by donating CFI tokens. Your donation is recorded on-chain.' },
+  { step: '03', icon: Heart, title: 'Donate Tokens', description: 'Support projects by donating CFD tokens. Your donation is recorded on-chain.' },
   { step: '04', icon: BadgeCheck, title: 'Funds Released', description: 'Once the goal is reached, creators can claim funds. If not, donors get refunds.' },
 ];
 
@@ -103,7 +103,6 @@ const Index = () => {
               <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center animate-fade-in-up" style={{ animationDelay: '0.3s' }}>
                 <Button variant="gradient" size="xl" asChild>
                   <Link to="/campaigns">
-                    <Rocket className="w-5 h-5" />
                     Explore Campaigns
                   </Link>
                 </Button>
@@ -383,7 +382,7 @@ const Index = () => {
                       title: "Mainnet & Token Launch",
                       points: [
                         "Launch mainnet platform on BNB Chain",
-                        "Private + public CFI token sale",
+                        "Private + public CFD token sale",
                         "Marketing and partnerships",
                         "Get listed on exchanges",
                       ],
@@ -392,7 +391,7 @@ const Index = () => {
                       quarter: "Q3 2026",
                       title: "Community & DAO",
                       points: [
-                        "Launch CFI staking reward program",
+                        "Launch CFD staking reward program",
                         "Begin governance voting on proposals",
                         "Onboard early NGOs and creators",
                       ],
