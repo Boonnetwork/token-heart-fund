@@ -47,7 +47,7 @@ export const ContractProvider: React.FC<{ children: ReactNode }> = ({ children }
   const [tokenContract, setTokenContract] = useState<ethers.Contract | null>(null);
   const [crowdfundingContract, setCrowdfundingContract] = useState<ethers.Contract | null>(null);
   const [tokenBalance, setTokenBalance] = useState("0");
-  const [tokenSymbol, setTokenSymbol] = useState("CFI");
+  const [tokenSymbol, setTokenSymbol] = useState("CFD");
   const [tokenDecimals, setTokenDecimals] = useState(18);
   const [isLoading, setIsLoading] = useState(false);
 

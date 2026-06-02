@@ -1,6 +1,6 @@
 # CrowdFunding Smart Contract
 
-A decentralized crowdfunding platform built for the CrowdFi (CFI) token on BNB Smart Chain.
+A decentralized crowdfunding platform built for the ChainFunder (CFD) token on BNB Smart Chain.
 
 ## Deployment Guide
 
@@ -13,7 +13,7 @@ npm install @openzeppelin/contracts
 npm install --save-dev hardhat @openzeppelin/contracts @nomiclabs/hardhat-ethers ethers
 ```
 
-2. You need your CFI token address already deployed on BSC Testnet.
+2. You need your CFD token address already deployed on BSC Testnet.
 
 ### Deployment Steps
 
@@ -26,7 +26,7 @@ npm install --save-dev hardhat @openzeppelin/contracts @nomiclabs/hardhat-ethers
 5. Deploy:
    - Environment: `Injected Provider - MetaMask`
    - Contract: `CrowdFunding`
-   - Constructor arg: Your CFI token address (e.g., `0x123...abc`)
+   - Constructor arg: Your CFD token address (e.g., `0x123...abc`)
 6. Click Deploy and confirm in MetaMask
 
 #### Using Hardhat
@@ -64,10 +64,10 @@ PRIVATE_KEY=your_wallet_private_key_without_0x
 const hre = require("hardhat");
 
 async function main() {
-  const CFI_TOKEN_ADDRESS = "YOUR_CFI_TOKEN_ADDRESS_HERE";
+  const CFD_TOKEN_ADDRESS = "YOUR_CFD_TOKEN_ADDRESS_HERE";
   
   const CrowdFunding = await hre.ethers.getContractFactory("CrowdFunding");
-  const crowdfunding = await CrowdFunding.deploy(CFI_TOKEN_ADDRESS);
+  const crowdfunding = await CrowdFunding.deploy(CFD_TOKEN_ADDRESS);
   await crowdfunding.deployed();
   
   console.log("CrowdFunding deployed to:", crowdfunding.address);
@@ -91,7 +91,7 @@ npx hardhat run scripts/deploy.js --network bscTestnet
 | Function | Description |
 |----------|-------------|
 | `createCampaign(title, description, imageUrl, goalAmount, durationDays)` | Create a new campaign |
-| `donate(campaignId, amount)` | Donate CFI tokens to a campaign |
+| `donate(campaignId, amount)` | Donate CFD tokens to a campaign |
 | `claimRefund(campaignId)` | Claim refund if campaign failed/cancelled |
 
 ### For Campaign Creators
@@ -140,7 +140,7 @@ After deployment, get the ABI from Remix or your build folder. The key functions
 
 1. Deploy the contract and get the address
 2. Go to `/settings` on your platform
-3. Enter the CFI token address and ABI
+3. Enter the CFD token address and ABI
 4. Enter the CrowdFunding contract address and ABI
 5. Save settings
 
@@ -151,7 +151,7 @@ After deployment, get the ABI from Remix or your build folder. The key functions
 - ✅ Owner-only admin functions
 - ✅ Refund mechanism for failed campaigns
 - ✅ Platform fee capped at 10%
-- ✅ Cannot withdraw campaign funds (CFI token)
+- ✅ Cannot withdraw campaign funds (CFD token)
 
 ## Platform Fee
 

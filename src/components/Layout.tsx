@@ -1,6 +1,7 @@
 import React from 'react';
 import { Navbar } from '@/components/Navbar';
 import { Footer } from '@/components/Footer';
+import { BackToTop } from '@/components/BackToTop';
 import { cn } from '@/lib/utils';
 
 interface LayoutProps {
@@ -17,6 +18,7 @@ export const Layout: React.FC<LayoutProps> = ({ children, className, showFooter 
         {children}
       </main>
       {showFooter && <Footer />}
+      <BackToTop />
     </div>
   );
 };

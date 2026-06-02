@@ -8,8 +8,8 @@ import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 
 /**
  * @title CrowdFunding
- * @dev A decentralized crowdfunding platform using CFI token on BSC
- * @notice This contract allows users to create and fund campaigns using the CrowdFi (CFI) token.
+ * @dev A decentralized crowdfunding platform using CFD token on BSC
+ * @notice This contract allows users to create and fund campaigns using the ChainFunder (CFD) token.
  *
  * Key features:
  * - Donations are capped at the remaining goal amount; excess is returned to the donor
@@ -113,8 +113,8 @@ contract CrowdFunding is Ownable, ReentrancyGuard {
     // ============ Constructor ============
 
     /**
-     * @notice Initialize the crowdfunding contract with the CFI token address
-     * @param _cfiToken Address of the CrowdFi (CFI) token contract
+     * @notice Initialize the crowdfunding contract with the CFD token address
+     * @param _cfiToken Address of the ChainFunder (CFD) token contract
      */
     constructor(address _cfiToken) Ownable(msg.sender) {
         require(_cfiToken != address(0), "Invalid token address");
@@ -128,7 +128,7 @@ contract CrowdFunding is Ownable, ReentrancyGuard {
      * @param _title Campaign title
      * @param _description Campaign description
      * @param _imageUrl IPFS or URL for campaign image
-     * @param _goalAmount Funding goal in CFI tokens (wei)
+     * @param _goalAmount Funding goal in CFD tokens (wei)
      * @param _durationDays Campaign duration in days
      * @return campaignId The ID of the newly created campaign
      */
@@ -176,12 +176,12 @@ contract CrowdFunding is Ownable, ReentrancyGuard {
     }
 
     /**
-     * @notice Donate CFI tokens to a campaign
+     * @notice Donate CFD tokens to a campaign
      * @dev Requires prior token approval. Caps donation at remaining goal amount
      *      and returns any excess to the donor. Blocks donations once goal is reached
      *      or deadline has passed.
      * @param _campaignId ID of the campaign to donate to
-     * @param _amount Amount of CFI tokens to donate (in wei)
+     * @param _amount Amount of CFD tokens to donate (in wei)
      */
     function donate(uint256 _campaignId, uint256 _amount) 
         external 
@@ -456,7 +456,7 @@ contract CrowdFunding is Ownable, ReentrancyGuard {
      * @param _amount Amount to withdraw
      */
     function emergencyWithdraw(address _token, uint256 _amount) external onlyOwner {
-        require(_token != address(cfiToken), "Cannot withdraw CFI");
+        require(_token != address(cfiToken), "Cannot withdraw CFD");
         IERC20(_token).safeTransfer(owner(), _amount);
     }
 
