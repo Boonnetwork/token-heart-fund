@@ -24,7 +24,7 @@ export const Navbar: React.FC = () => {
           {/* Logo */}
           <Link to="/" className="flex items-center gap-3 group">
             <div className="w-10 h-10 rounded-xl bg-gradient-primary flex items-center justify-center group-hover:shadow-glow transition-all duration-300">
-              <Rocket className="w-5 h-5 text-primary-foreground" />
+              <img src="/chainfunder.png" alt="ChainFunder" className="w-6 h-6" />
             </div>
             <span className="font-display text-xl font-bold gradient-text hidden sm:block">
               ChainFunder
