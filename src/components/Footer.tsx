@@ -4,10 +4,10 @@ import { Rocket, Twitter, Github, MessageCircle, ExternalLink, Send } from 'luci
 
 // Social links - can be customized
 const SOCIAL_LINKS = {
-  twitter: 'https://twitter.com/chainfunder',
-  github: 'https://github.com/chainfunder',
+  twitter: 'https://x.com/thechainfunder',
+  github: 'https://github.com',
   telegram: 'https://t.me/chainfunder',
-  discord: 'https://discord.gg/chainfunder',
+  discord: 'https://discord.gg',
 };
 
 export const Footer = forwardRef<HTMLElement>((_, ref) => {
