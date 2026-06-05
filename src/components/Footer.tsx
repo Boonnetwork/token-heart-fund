@@ -19,7 +19,7 @@ export const Footer = forwardRef<HTMLElement>((_, ref) => {
           <div className="md:col-span-2">
             <Link to="/" className="flex items-center gap-3 mb-4">
               <div className="w-10 h-10 rounded-xl bg-gradient-primary flex items-center justify-center">
-                <Rocket className="w-5 h-5 text-primary-foreground" />
+                <img src="/chainfunder.png" alt="ChainFunder" className="w-6 h-6" />
               </div>
               <span className="font-display text-xl font-bold gradient-text">
                 ChainFunder
