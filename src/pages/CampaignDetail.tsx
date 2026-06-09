@@ -13,6 +13,8 @@ import { useContracts } from '@/contexts/ContractContext';
 import { useCrowdfunding, CampaignData, DonationData, ClaimEventData } from '@/hooks/useCrowdfunding';
 import { useContractEvents } from '@/hooks/useContractEvents';
 import { ShareButtons } from '@/components/ShareButtons';
+import { CategoryBadge } from '@/components/CategoryBadge';
+import { resolveCategory } from '@/lib/categories';
 import { 
   ArrowLeft, 
   Clock, 
@@ -324,6 +326,11 @@ const CampaignDetail = () => {
 
             {/* Title & Creator */}
             <div>
+              <div className="flex flex-wrap items-center gap-2 mb-2">
+                {resolveCategory(campaign.category) && (
+                  <CategoryBadge category={resolveCategory(campaign.category)} size="md" />
+                )}
+              </div>
               <h1 className="font-display text-2xl sm:text-3xl md:text-4xl font-bold text-foreground mb-3 break-words">
                 {campaign.title}
               </h1>

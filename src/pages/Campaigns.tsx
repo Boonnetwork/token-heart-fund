@@ -2,19 +2,22 @@ import React, { useState, useMemo, useCallback } from 'react';
 import { Layout } from '@/components/Layout';
 import { CampaignCard, Campaign } from '@/components/CampaignCard';
 import { CampaignCardSkeleton } from '@/components/CampaignCardSkeleton';
+import { CategoryFilter } from '@/components/CategoryFilter';
 import { BackToTop } from '@/components/BackToTop';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useCrowdfunding } from '@/hooks/useCrowdfunding';
 import { useContractEvents } from '@/hooks/useContractEvents';
+import { resolveCategory } from '@/lib/categories';
 import { Search, Filter, Rocket, ChevronLeft, ChevronRight, RefreshCw } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 
 type StatusFilter = 'all' | 'active' | 'completed' | 'failed' | 'cancelled';
-type SortOption = 'newest' | 'ending-soon' | 'most-funded' | 'most-backers';
+type SortOption = 'newest' | 'ending-soon' | 'most-funded' | 'most-backers' | 'category';
+
 
 const ITEMS_PER_PAGE = 9;
 
@@ -22,6 +25,7 @@ const Campaigns = () => {
   const { campaigns, isLoading, tokenSymbol, fetchCampaigns } = useCrowdfunding();
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
+  const [categoryFilter, setCategoryFilter] = useState<string[]>([]);
   const [sortOption, setSortOption] = useState<SortOption>('newest');
   const [currentPage, setCurrentPage] = useState(1);
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -52,18 +56,25 @@ const Campaigns = () => {
       donorsCount: c.donorCount,
       status: c.status,
       tokenSymbol: tokenSymbol,
+      category: c.category,
     } as Campaign));
 
     if (searchQuery) {
       const query = searchQuery.toLowerCase();
-      result = result.filter(c => 
-        c.title.toLowerCase().includes(query) || 
-        c.shortDescription.toLowerCase().includes(query)
-      );
+      result = result.filter(c => {
+        const cat = resolveCategory(c.category);
+        return c.title.toLowerCase().includes(query)
+          || c.shortDescription.toLowerCase().includes(query)
+          || (cat && cat.label.toLowerCase().includes(query));
+      });
     }
 
     if (statusFilter !== 'all') {
       result = result.filter(c => c.status === statusFilter);
+    }
+
+    if (categoryFilter.length > 0) {
+      result = result.filter(c => c.category && categoryFilter.includes(c.category));
     }
 
     switch (sortOption) {
@@ -71,10 +82,15 @@ const Campaigns = () => {
       case 'ending-soon': result.sort((a, b) => a.deadline.getTime() - b.deadline.getTime()); break;
       case 'most-funded': result.sort((a, b) => b.raisedAmount - a.raisedAmount); break;
       case 'most-backers': result.sort((a, b) => b.donorsCount - a.donorsCount); break;
+      case 'category': result.sort((a, b) => {
+        const ax = resolveCategory(a.category)?.label || 'ZZZ';
+        const bx = resolveCategory(b.category)?.label || 'ZZZ';
+        return ax.localeCompare(bx);
+      }); break;
     }
 
     return result;
-  }, [campaigns, searchQuery, statusFilter, sortOption, tokenSymbol]);
+  }, [campaigns, searchQuery, statusFilter, categoryFilter, sortOption, tokenSymbol]);
 
   const totalPages = Math.ceil(filteredAndSortedCampaigns.length / ITEMS_PER_PAGE);
   const paginatedCampaigns = useMemo(() => {
@@ -82,7 +98,7 @@ const Campaigns = () => {
     return filteredAndSortedCampaigns.slice(startIndex, startIndex + ITEMS_PER_PAGE);
   }, [filteredAndSortedCampaigns, currentPage]);
 
-  React.useEffect(() => { setCurrentPage(1); }, [searchQuery, statusFilter, sortOption]);
+  React.useEffect(() => { setCurrentPage(1); }, [searchQuery, statusFilter, categoryFilter, sortOption]);
 
   return (
     <Layout>
@@ -127,6 +143,7 @@ const Campaigns = () => {
               <SelectItem value="cancelled">Cancelled</SelectItem>
             </SelectContent>
           </Select>
+          <CategoryFilter selected={categoryFilter} onChange={setCategoryFilter} />
           <Select value={sortOption} onValueChange={(v) => setSortOption(v as SortOption)}>
             <SelectTrigger className="w-full sm:w-44">
               <SelectValue placeholder="Sort by" />
@@ -136,9 +153,11 @@ const Campaigns = () => {
               <SelectItem value="ending-soon">Ending Soon</SelectItem>
               <SelectItem value="most-funded">Most Funded</SelectItem>
               <SelectItem value="most-backers">Most Backers</SelectItem>
+              <SelectItem value="category">Category (A–Z)</SelectItem>
             </SelectContent>
           </Select>
         </div>
+
 
         {/* Results */}
         {isLoading ? (

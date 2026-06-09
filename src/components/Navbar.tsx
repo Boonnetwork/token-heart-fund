@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Menu, X, Rocket, LayoutDashboard, PlusCircle, Home } from 'lucide-react';
+import { Menu, X, Rocket, LayoutDashboard, PlusCircle, Home, Coins, Vote } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { WalletButton } from '@/components/WalletButton';
 import { ThemeToggle } from '@/components/ThemeToggle';
@@ -10,6 +10,8 @@ const navLinks = [
   { href: '/', label: 'Home', icon: Home },
   { href: '/campaigns', label: 'Campaigns', icon: Rocket },
   { href: '/create', label: 'Create', icon: PlusCircle },
+  { href: '/staking', label: 'Staking', icon: Coins },
+  { href: '/governance', label: 'Governance', icon: Vote },
   { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
 ];
 

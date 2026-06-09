@@ -195,10 +195,45 @@ const Settings = () => {
           </CardContent>
         </Card>
 
+        <Card className="glass-card mt-6">
+          <CardHeader>
+            <CardTitle>Staking Contract</CardTitle>
+            <CardDescription>Optional — set after deploying CFDStaking.sol</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="space-y-2">
+              <Label>Staking Contract Address</Label>
+              <Input
+                placeholder="0x... (leave blank to disable)"
+                value={formData.stakingAddress}
+                onChange={(e) => setFormData({ ...formData, stakingAddress: e.target.value })}
+              />
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="glass-card mt-6">
+          <CardHeader>
+            <CardTitle>Governance Contract</CardTitle>
+            <CardDescription>Optional — set after deploying CFDGovernance.sol</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="space-y-2">
+              <Label>Governance Contract Address</Label>
+              <Input
+                placeholder="0x... (leave blank to disable)"
+                value={formData.governanceAddress}
+                onChange={(e) => setFormData({ ...formData, governanceAddress: e.target.value })}
+              />
+            </div>
+          </CardContent>
+        </Card>
+
         <Button variant="gradient" size="lg" className="w-full mt-6" onClick={handleSave}>
           <Save className="w-4 h-4 mr-2" />
           Save Settings
         </Button>
+
 
         <div className="mt-10">
           <MediaManager />
