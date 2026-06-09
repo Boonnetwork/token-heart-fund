@@ -143,6 +143,7 @@ const Campaigns = () => {
               <SelectItem value="cancelled">Cancelled</SelectItem>
             </SelectContent>
           </Select>
+          <CategoryFilter selected={categoryFilter} onChange={setCategoryFilter} />
           <Select value={sortOption} onValueChange={(v) => setSortOption(v as SortOption)}>
             <SelectTrigger className="w-full sm:w-44">
               <SelectValue placeholder="Sort by" />
@@ -152,9 +153,11 @@ const Campaigns = () => {
               <SelectItem value="ending-soon">Ending Soon</SelectItem>
               <SelectItem value="most-funded">Most Funded</SelectItem>
               <SelectItem value="most-backers">Most Backers</SelectItem>
+              <SelectItem value="category">Category (A–Z)</SelectItem>
             </SelectContent>
           </Select>
         </div>
+
 
         {/* Results */}
         {isLoading ? (
