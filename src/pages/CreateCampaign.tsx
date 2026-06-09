@@ -14,13 +14,14 @@ import { toast } from 'sonner';
 import { campaignSchema, sanitizeText } from '@/lib/validation';
 import { Progress } from '@/components/ui/progress';
 import { uploadToPinata, isPinataConfigured } from '@/lib/pinata';
+import { CategorySelect } from '@/components/CategorySelect';
 
 const CreateCampaign = () => {
   const navigate = useNavigate();
   const { isConnected } = useWallet();
   const { crowdfundingContract, tokenSymbol } = useContracts();
   const { createCampaign } = useCrowdfunding();
-  
+
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [imagePreview, setImagePreview] = useState<string>('');
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -34,6 +35,7 @@ const CreateCampaign = () => {
     goalAmount: '',
     durationDays: '',
     imageUrl: '',
+    category: '',
   });
 
   const handleImageUrlChange = (url: string) => {
@@ -87,8 +89,7 @@ const CreateCampaign = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrors({});
-    
-    
+
     if (!isConnected) {
       toast.error('Please connect your wallet first');
       return;
@@ -99,7 +100,12 @@ const CreateCampaign = () => {
       return;
     }
 
-    // Sanitize inputs
+    if (!formData.category) {
+      setErrors({ category: 'Please select a category' });
+      toast.error('Please select a category');
+      return;
+    }
+
     const sanitizedData = {
       title: sanitizeText(formData.title),
       shortDescription: sanitizeText(formData.shortDescription),
@@ -109,9 +115,7 @@ const CreateCampaign = () => {
       imageUrl: formData.imageUrl,
     };
 
-    // Validate with Zod
     const result = campaignSchema.safeParse(sanitizedData);
-    
     if (!result.success) {
       const fieldErrors: Record<string, string> = {};
       result.error.errors.forEach((err) => {
@@ -124,20 +128,18 @@ const CreateCampaign = () => {
     }
 
     setIsSubmitting(true);
-    
     const campaignId = await createCampaign(
       sanitizedData.title,
       sanitizedData.fullDescription,
       sanitizedData.imageUrl || 'https://images.unsplash.com/photo-1639762681485-074b7f938ba0?w=800',
       sanitizedData.goalAmount,
-      parseInt(sanitizedData.durationDays)
+      parseInt(sanitizedData.durationDays),
+      formData.category,
     );
 
     if (campaignId) {
-      // Redirect to the newly created campaign
       navigate(`/campaign/${campaignId}`);
     }
-    
     setIsSubmitting(false);
   };
 
