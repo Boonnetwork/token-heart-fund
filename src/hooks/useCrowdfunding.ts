@@ -3,6 +3,7 @@ import { ethers } from 'ethers';
 import { useWallet } from '@/contexts/WalletContext';
 import { useContracts } from '@/contexts/ContractContext';
 import { toast } from 'sonner';
+import { extractCategory, encodeCategoryIntoDescription } from '@/lib/categories';
 
 export interface CampaignData {
   id: number;
@@ -18,6 +19,7 @@ export interface CampaignData {
   cancelled: boolean;
   donorCount: number;
   status: 'active' | 'completed' | 'failed' | 'cancelled';
+  category?: string; // slug
 }
 
 export interface DonationData {
@@ -49,7 +51,18 @@ export const useCrowdfunding = () => {
     const createdAt = new Date(raw.createdAt.toNumber() * 1000);
     const goalAmount = ethers.utils.formatUnits(raw.goalAmount, decimals);
     const raisedAmount = ethers.utils.formatUnits(raw.raisedAmount, decimals);
-    
+
+    // New contract returns `category` on the struct; fall back to description tag
+    // for backward compatibility with the currently deployed contract.
+    let category: string | undefined =
+      (raw.category && typeof raw.category === 'string' && raw.category) || undefined;
+    let description: string = raw.description;
+    if (!category) {
+      const parsed = extractCategory(description);
+      if (parsed.category) category = parsed.category.slug;
+      description = parsed.description;
+    }
+
     let status: CampaignData['status'] = 'active';
     if (raw.cancelled) status = 'cancelled';
     else if (raw.claimed) status = 'completed';
@@ -57,10 +70,10 @@ export const useCrowdfunding = () => {
     else if (deadline.getTime() < now) status = parseFloat(raisedAmount) >= parseFloat(goalAmount) ? 'completed' : 'failed';
 
     return {
-      id: raw.id.toNumber(), creator: raw.creator, title: raw.title, description: raw.description,
+      id: raw.id.toNumber(), creator: raw.creator, title: raw.title, description,
       imageUrl: raw.imageUrl || 'https://images.unsplash.com/photo-1639762681485-074b7f938ba0?w=800',
       goalAmount, raisedAmount, deadline, createdAt, claimed: raw.claimed, cancelled: raw.cancelled,
-      donorCount: raw.donorCount.toNumber(), status,
+      donorCount: raw.donorCount.toNumber(), status, category,
     };
   }, []);
 
