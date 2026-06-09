@@ -177,28 +177,40 @@ export const useCrowdfunding = () => {
     catch { return '0'; }
   }, [crowdfundingContract, tokenDecimals]);
 
-  const createCampaign = useCallback(async (title: string, description: string, imageUrl: string, goalAmount: string, durationDays: number): Promise<number | false> => {
+  const createCampaign = useCallback(async (title: string, description: string, imageUrl: string, goalAmount: string, durationDays: number, category?: string): Promise<number | false> => {
     if (!crowdfundingContract) { toast.error('Contract not initialized'); return false; }
     try {
+      // Encode category into the description for backward compatibility with
+      // the deployed CrowdFunding contract that has no `category` field.
+      const encodedDescription = category
+        ? encodeCategoryIntoDescription(description, category)
+        : description;
+
       toast.loading('Sending transaction...', { id: 'create-campaign' });
-      const tx = await crowdfundingContract.createCampaign(title, description, imageUrl, ethers.utils.parseUnits(goalAmount, tokenDecimals), durationDays);
+      let tx;
+      // If a newer contract exposes a 6-arg overload, use it; otherwise fall back.
+      try {
+        if (category && crowdfundingContract['createCampaign(string,string,string,uint256,uint256,string)']) {
+          tx = await crowdfundingContract['createCampaign(string,string,string,uint256,uint256,string)'](
+            title, description, imageUrl, ethers.utils.parseUnits(goalAmount, tokenDecimals), durationDays, category
+          );
+        } else {
+          tx = await crowdfundingContract.createCampaign(title, encodedDescription, imageUrl, ethers.utils.parseUnits(goalAmount, tokenDecimals), durationDays);
+        }
+      } catch {
+        tx = await crowdfundingContract.createCampaign(title, encodedDescription, imageUrl, ethers.utils.parseUnits(goalAmount, tokenDecimals), durationDays);
+      }
       toast.loading('Waiting for confirmation...', { id: 'create-campaign' });
-      
-      // Race between tx.wait and a timeout - BSC Testnet can be slow
       const timeoutPromise = new Promise<null>((resolve) => setTimeout(() => resolve(null), 30000));
       const receipt = await Promise.race([tx.wait(1), timeoutPromise]);
-      
       let newId: number | null = null;
       if (receipt && (receipt as any).events) {
         const ev = (receipt as any).events.find((e: any) => e.event === 'CampaignCreated');
         if (ev?.args) newId = ev.args.id?.toNumber() || ev.args[0]?.toNumber();
       }
-      
-      // If we didn't get ID from receipt (timeout or no event), fetch from contract
       if (!newId) {
         try { newId = (await crowdfundingContract.campaignCount()).toNumber(); } catch {}
       }
-      
       toast.success(`Campaign created! View tx: ${shortenTxHash(tx.hash)}`, { id: 'create-campaign', action: { label: 'View', onClick: () => window.open(getTxUrl(tx.hash), '_blank') } });
       fetchCampaigns().catch(() => {});
       return newId || 1;
