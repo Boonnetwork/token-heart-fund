@@ -45,6 +45,7 @@ contract CrowdFunding is Ownable, ReentrancyGuard {
         bool claimed;
         bool cancelled;
         uint256 donorCount;
+        string category; // NEW: campaign category slug (e.g. "blockchain-web3")
     }
 
     struct Donation {
@@ -68,7 +69,8 @@ contract CrowdFunding is Ownable, ReentrancyGuard {
         address indexed creator,
         string title,
         uint256 goalAmount,
-        uint256 deadline
+        uint256 deadline,
+        string category
     );
 
     event DonationMade(
@@ -137,12 +139,14 @@ contract CrowdFunding is Ownable, ReentrancyGuard {
         string calldata _description,
         string calldata _imageUrl,
         uint256 _goalAmount,
-        uint256 _durationDays
+        uint256 _durationDays,
+        string calldata _category
     ) external returns (uint256 campaignId) {
         require(bytes(_title).length > 0, "Title required");
         require(bytes(_title).length <= 100, "Title too long");
         require(bytes(_description).length > 0, "Description required");
         require(bytes(_description).length <= 5000, "Description too long");
+        require(bytes(_category).length > 0 && bytes(_category).length <= 64, "Invalid category");
         require(_goalAmount > 0, "Goal must be > 0");
         require(_durationDays >= 1 && _durationDays <= 365, "Duration: 1-365 days");
 
@@ -161,7 +165,8 @@ contract CrowdFunding is Ownable, ReentrancyGuard {
             createdAt: block.timestamp,
             claimed: false,
             cancelled: false,
-            donorCount: 0
+            donorCount: 0,
+            category: _category
         });
 
         creatorCampaigns[msg.sender].push(campaignId);
@@ -171,7 +176,8 @@ contract CrowdFunding is Ownable, ReentrancyGuard {
             msg.sender,
             _title,
             _goalAmount,
-            campaigns[campaignId].deadline
+            campaigns[campaignId].deadline,
+            _category
         );
     }
 
