@@ -3,6 +3,8 @@ import { Link } from 'react-router-dom';
 import { Clock, Users, ArrowRight, XCircle } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
+import { CategoryBadge } from '@/components/CategoryBadge';
+import { resolveCategory } from '@/lib/categories';
 import { cn } from '@/lib/utils';
 
 export interface Campaign {
@@ -17,6 +19,7 @@ export interface Campaign {
   donorsCount: number;
   status: 'active' | 'completed' | 'failed' | 'cancelled';
   tokenSymbol: string;
+  category?: string;
 }
 
 interface CampaignCardProps {
@@ -31,6 +34,8 @@ export const CampaignCard: React.FC<CampaignCardProps> = ({ campaign, className 
   const daysLeft = Math.max(0, Math.ceil((campaign.deadline.getTime() - Date.now()) / (1000 * 60 * 60 * 24)));
   const isEnded = daysLeft === 0;
   const [imgError, setImgError] = React.useState(false);
+  const category = resolveCategory(campaign.category);
+
 
   const statusConfig = {
     active: { label: 'Active', className: 'bg-emerald/20 text-emerald border-emerald/30' },
@@ -62,6 +67,7 @@ export const CampaignCard: React.FC<CampaignCardProps> = ({ campaign, className 
           {campaign.status === 'cancelled' && <XCircle className="w-3 h-3 mr-1" />}
           {statusConfig[campaign.status].label}
         </Badge>
+        {category && <CategoryBadge category={category} className="absolute top-3 left-3" />}
       </div>
 
       {/* Content */}
