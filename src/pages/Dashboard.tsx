@@ -7,6 +7,7 @@ import { useWallet } from '@/contexts/WalletContext';
 import { useContracts } from '@/contexts/ContractContext';
 import { useCrowdfunding, CampaignData } from '@/hooks/useCrowdfunding';
 import { CampaignCard, Campaign } from '@/components/CampaignCard';
+import { ReferralPanel } from '@/components/ReferralPanel';
 import { Wallet, Coins, Rocket, TrendingUp, Plus, Loader2, Heart, AlertCircle, XCircle, RefreshCw } from 'lucide-react';
 import { Link, Navigate } from 'react-router-dom';
 import { cn } from '@/lib/utils';
@@ -90,6 +91,7 @@ const Dashboard = () => {
     donorsCount: c.donorCount,
     status: c.status,
     tokenSymbol: tokenSymbol,
+    category: c.category,
   });
 
   // Redirect to home if wallet not connected
@@ -181,6 +183,13 @@ const Dashboard = () => {
             </CardContent>
           </Card>
         </div>
+
+        {/* Referral Panel (staking only) */}
+        <div className="mb-8 sm:mb-10">
+          <ReferralPanel />
+        </div>
+
+
 
         {/* Tabs */}
         <Tabs defaultValue="my-campaigns" className="space-y-6">
