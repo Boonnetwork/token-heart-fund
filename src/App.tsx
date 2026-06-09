@@ -16,6 +16,9 @@ import Dashboard from "./pages/Dashboard";
 import Settings from "./pages/Settings";
 import Blog from "./pages/Blog";
 import BlogPost from "./pages/BlogPost";
+import Staking from "./pages/Staking";
+import Governance from "./pages/Governance";
+import ProposalDetail from "./pages/ProposalDetail";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -40,6 +43,9 @@ const App = () => (
                   <Route path="/settings" element={<Settings />} />
                   <Route path="/blog" element={<Blog />} />
                   <Route path="/blog/:id" element={<BlogPost />} />
+                  <Route path="/staking" element={<Staking />} />
+                  <Route path="/governance" element={<Governance />} />
+                  <Route path="/governance/:id" element={<ProposalDetail />} />
                   <Route path="*" element={<NotFound />} />
                 </Routes>
               </BrowserRouter>
