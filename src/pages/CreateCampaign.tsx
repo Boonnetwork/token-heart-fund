@@ -201,6 +201,20 @@ const CreateCampaign = () => {
                 </div>
               </div>
 
+              {/* Category */}
+              <div className="space-y-2">
+                <Label htmlFor="category">Category *</Label>
+                <CategorySelect
+                  value={formData.category}
+                  onChange={(slug) => {
+                    setFormData({ ...formData, category: slug });
+                    setErrors((prev) => ({ ...prev, category: '' }));
+                  }}
+                  error={!!errors.category}
+                />
+                {errors.category && <p className="text-destructive text-xs">{errors.category}</p>}
+              </div>
+
               {/* Short Description */}
               <div className="space-y-2">
                 <Label htmlFor="shortDescription">Short Description</Label>
