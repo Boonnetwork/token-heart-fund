@@ -423,3 +423,68 @@ DOCUMENTATION.md           # ← you are here
 ```
 
 — End of documentation —
+
+---
+
+## New Modules (v2): Categories, DAO Governance, Staking & Referrals
+
+### 1. Campaign Categories
+
+- Every campaign now has a category from a curated 50+ list (`src/lib/categories.ts`).
+- On Create: required `CategorySelect` dropdown (searchable, grouped).
+- On Explore: multi-select `CategoryFilter`, search by category name, and "Sort by Category (A–Z)".
+- On Card / Detail: category rendered as a `CategoryBadge`.
+
+**Backward compatibility:** the currently-deployed `CrowdFunding` contract has
+no `category` field, so the frontend stores the slug as a `[CAT:slug]` prefix in
+the description. On read, the prefix is stripped and exposed as `campaign.category`.
+
+If you redeploy with the updated `contracts/CrowdFunding.sol` (which adds a
+native `string category` and 6-arg `createCampaign(...)`), the frontend
+automatically prefers the on-chain field via an overload check —
+no code change required.
+
+### 2. CFDStaking.sol (new)
+
+**Deploy in Remix**:
+1. Open `contracts/CFDStaking.sol`, compile with Solidity 0.8.19.
+2. Constructor args: `_token = <CFD token address>`, `_rewardRatePerSecond = <wei per staked 1e18 per second>`.
+3. After deploy, fund the reward pool: approve the staking contract from your treasury, then call `fundRewards(amount)`.
+4. Paste the deployed address into **Settings → Staking Contract Address**.
+
+Public functions: `stake(amount, referrer)`, `unstake(amount)`, `claimRewards()`. Admin: `setRewardRate(newRate)`, `fundRewards(amount)`.
+
+### 3. CFDGovernance.sol (new)
+
+**Deploy in Remix**:
+1. Open `contracts/CFDGovernance.sol`, compile with Solidity 0.8.19.
+2. Constructor args: `_staking = <CFDStaking address>`, `_minStakeToPropose = <wei>`.
+3. Paste the deployed address into **Settings → Governance Contract Address**.
+
+Voting weight = the proposer/voter's current staked balance. Signaling-only DAO
+(execution records the outcome on-chain; extend with a Timelock for arbitrary
+calls in a future upgrade).
+
+### 4. Single-level Referral (Staking-only)
+
+- Encoded directly inside `CFDStaking.sol` — no separate contract.
+- Pays the referrer `REFERRAL_BPS = 10` (0.1%) of the claimer's reward, **only on `claimRewards()`**.
+- Single-level only: A→B→C means C's claim pays B, never A.
+- Self-, zero-, and immediate-loop referrals are rejected on-chain.
+- Referrer is set on the first `stake()` and immutable thereafter.
+
+**Frontend referral link**: `https://<domain>/?ref=0xYourAddress`. New visitors get
+the referrer stored in `localStorage` and passed automatically on their first
+stake. Visible in **Dashboard → Referrals** with copy-link, totals (count,
+earned, claimed) and the list of referred wallets.
+
+### Migration & testing checklist
+
+1. Deploy `CFDStaking` and `CFDGovernance`; configure both addresses in `/settings`.
+2. Fund the staking reward pool via `fundRewards`.
+3. End-to-end test:
+   - Create a campaign — pick a category, confirm it shows on card + detail.
+   - Filter Campaigns by category and sort by category.
+   - Stake with `?ref=` URL — confirm referrer is recorded.
+   - Wait, then claim — confirm referrer received 0.1%.
+   - Create a proposal, vote with another wallet, execute after deadline.
