@@ -78,7 +78,7 @@ export const ContractProvider: React.FC<{ children: ReactNode }> = ({ children }
       setCrowdfundingContract(null);
     }
     try {
-      const runner = signer || new ethers.providers.JsonRpcProvider(BSC_TESTNET_RPC);
+      const runner = new ethers.providers.JsonRpcProvider(BSC_TESTNET_RPC);
 
       const tokenAbi = settings.tokenABI ? JSON.parse(settings.tokenABI) : [];
       const crowdAbi = settings.crowdfundingABI ? JSON.parse(settings.crowdfundingABI) : [];
@@ -156,9 +156,9 @@ export const ContractProvider: React.FC<{ children: ReactNode }> = ({ children }
   };
 
   const approveTokens = async (_amount: string): Promise<boolean> => {
-    if (!tokenContract || !settings.crowdfundingAddress) return false;
+    if (!tokenContract || !signer || !settings.crowdfundingAddress) return false;
     try {
-      const tx = await tokenContract.approve(settings.crowdfundingAddress, ethers.constants.MaxUint256);
+      const tx = await tokenContract.connect(signer).approve(settings.crowdfundingAddress, ethers.constants.MaxUint256);
       await tx.wait(1);
       return true;
     } catch (error) { console.error("Error approving tokens:", error); return false; }

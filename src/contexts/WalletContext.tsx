@@ -50,12 +50,6 @@ const getInjectedProvider = (): InjectedEthereumProvider | undefined => {
   return ethereum;
 };
 
-const getMetaMaskDeepLink = () => {
-  if (typeof window === 'undefined') return 'https://metamask.app.link/';
-
-  return `https://metamask.app.link/dapp/${window.location.host}${window.location.pathname}${window.location.search}${window.location.hash}`;
-};
-
 export const WalletProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [provider, setProvider] = useState<ethers.providers.Web3Provider | null>(null);
   const [signer, setSigner] = useState<ethers.Signer | null>(null);
@@ -117,12 +111,14 @@ export const WalletProvider: React.FC<{ children: ReactNode }> = ({ children }) 
     if (activeAddress && provider) await updateBalance(activeAddress, provider);
   }, [activeAddress, provider, updateBalance]);
 
-  const connectInjectedWallet = useCallback(async (injectedProvider: InjectedEthereumProvider) => {
+  const connectInjectedWallet = useCallback(async (injectedProvider: InjectedEthereumProvider, requestAccounts = true) => {
     if (!injectedProvider.request) {
       throw new Error('No injected wallet provider available');
     }
 
-    await injectedProvider.request({ method: 'eth_requestAccounts' });
+    if (requestAccounts) {
+      await injectedProvider.request({ method: 'eth_requestAccounts' });
+    }
 
     const web3Provider = new ethers.providers.Web3Provider(
       injectedProvider as ethers.providers.ExternalProvider,
@@ -191,9 +187,30 @@ export const WalletProvider: React.FC<{ children: ReactNode }> = ({ children }) 
       setProvider(null);
       setSigner(null);
     }
-
-    return () => clearInjectedListeners();
   }, [walletProvider, isConnected, address, fallbackAddress, fallbackChainId, clearFallbackSession, clearInjectedListeners]);
+
+  useEffect(() => {
+    if (isConnected || fallbackAddress) return;
+
+    const injectedProvider = getInjectedProvider();
+    if (!injectedProvider?.request) return;
+
+    let cancelled = false;
+
+    const restoreInjectedSession = async () => {
+      try {
+        const accounts = await injectedProvider.request({ method: 'eth_accounts' }) as string[];
+        if (cancelled || !accounts?.length) return;
+        await connectInjectedWallet(injectedProvider, false);
+      } catch {
+        // Silent restore should never trigger visible errors or permission prompts.
+      }
+    };
+
+    restoreInjectedSession();
+
+    return () => { cancelled = true; };
+  }, [connectInjectedWallet, fallbackAddress, isConnected]);
 
   useEffect(() => {
     if (balanceRetryRef.current) {
@@ -219,11 +236,22 @@ export const WalletProvider: React.FC<{ children: ReactNode }> = ({ children }) 
   }, [activeAddress, activeChainId, activeIsConnected, provider, updateBalance]);
 
   const connectWallet = useCallback(async () => {
-    if (isConnecting) return;
+    if (isConnecting || activeIsConnected) return;
 
     setIsConnecting(true);
 
     try {
+      const injectedProvider = getInjectedProvider();
+      if (injectedProvider?.request) {
+        await connectInjectedWallet(injectedProvider);
+        return;
+      }
+
+      if (MOBILE_DEVICE_REGEX.test(navigator.userAgent)) {
+        toast.info('Open ChainFunder inside your wallet browser to connect without repeated app prompts.');
+        return;
+      }
+
       await open({ view: 'Connect' });
     } catch (err: any) {
       if (err?.code === 4001) {
@@ -235,7 +263,7 @@ export const WalletProvider: React.FC<{ children: ReactNode }> = ({ children }) 
     } finally {
       setIsConnecting(false);
     }
-  }, [isConnecting, open]);
+  }, [activeIsConnected, connectInjectedWallet, isConnecting, open]);
 
   const disconnectWallet = useCallback(() => {
     clearFallbackSession();

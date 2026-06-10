@@ -161,12 +161,9 @@ const CreateCampaign = () => {
         <div className="container mx-auto px-4 py-20 text-center">
           <AlertCircle className="w-16 h-16 text-muted-foreground mx-auto mb-6" />
           <h1 className="font-display text-2xl font-bold text-foreground mb-4">Contracts Not Configured</h1>
-          <p className="text-muted-foreground mb-6">
-            Please configure the smart contract addresses in the settings page first.
+          <p className="text-muted-foreground">
+            Campaign creation is being prepared.
           </p>
-          <Button variant="gradient" asChild>
-            <Link to="/settings">Go to Settings</Link>
-          </Button>
         </div>
       </Layout>
     );
