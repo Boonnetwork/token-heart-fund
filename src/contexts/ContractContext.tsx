@@ -106,7 +106,7 @@ export const ContractProvider: React.FC<{ children: ReactNode }> = ({ children }
     } catch (error) {
       console.error("Error initializing contracts:", error);
     }
-  }, [signer, settings]);
+  }, [settings]);
 
   useEffect(() => {
     const fetchTokenInfo = async () => {
