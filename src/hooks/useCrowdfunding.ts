@@ -263,28 +263,28 @@ export const useCrowdfunding = () => {
   }, [crowdfundingContract, signer, fetchCampaigns, refreshTokenBalance]);
 
   const claimRefund = useCallback(async (campaignId: number): Promise<boolean> => {
-    if (!crowdfundingContract) { toast.error('Contract not initialized'); return false; }
+    if (!crowdfundingContract || !signer) { toast.error('Contract not initialized'); return false; }
     try {
       toast.loading('Claiming refund...', { id: 'refund' });
-      const tx = await crowdfundingContract.claimRefund(campaignId);
+      const tx = await crowdfundingContract.connect(signer).claimRefund(campaignId);
       await tx.wait();
       toast.success(`Refund claimed! Tx: ${shortenTxHash(tx.hash)}`, { id: 'refund', action: { label: 'View', onClick: () => window.open(getTxUrl(tx.hash), '_blank') } });
       await refreshTokenBalance(); await fetchCampaigns();
       return true;
     } catch (error: any) { toast.error(error.reason || 'Failed to claim refund', { id: 'refund' }); return false; }
-  }, [crowdfundingContract, fetchCampaigns, refreshTokenBalance]);
+  }, [crowdfundingContract, signer, fetchCampaigns, refreshTokenBalance]);
 
   const cancelCampaign = useCallback(async (campaignId: number): Promise<boolean> => {
-    if (!crowdfundingContract) { toast.error('Contract not initialized'); return false; }
+    if (!crowdfundingContract || !signer) { toast.error('Contract not initialized'); return false; }
     try {
       toast.loading('Cancelling campaign...', { id: 'cancel' });
-      const tx = await crowdfundingContract.cancelCampaign(campaignId);
+      const tx = await crowdfundingContract.connect(signer).cancelCampaign(campaignId);
       await tx.wait();
       toast.success(`Campaign cancelled! Tx: ${shortenTxHash(tx.hash)}`, { id: 'cancel', action: { label: 'View', onClick: () => window.open(getTxUrl(tx.hash), '_blank') } });
       await fetchCampaigns();
       return true;
     } catch (error: any) { toast.error(error.reason || 'Failed to cancel campaign', { id: 'cancel' }); return false; }
-  }, [crowdfundingContract, fetchCampaigns]);
+  }, [crowdfundingContract, signer, fetchCampaigns]);
 
   const getMyCampaigns = useCallback(async (): Promise<number[]> => {
     if (!crowdfundingContract || !address) return [];
