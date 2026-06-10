@@ -18,8 +18,8 @@ export const Footer = forwardRef<HTMLElement>((_, ref) => {
           {/* Brand */}
           <div className="md:col-span-2">
             <Link to="/" className="flex items-center gap-3 mb-4">
-              <div className="w-10 h-10 rounded-xl bg-gradient-primary flex items-center justify-center">
-                <img src="/chainfunder.png" alt="ChainFunder" className="w-6 h-6" />
+              <div className="w-12 h-12 rounded-xl bg-background/60 border border-primary/30 flex items-center justify-center overflow-hidden">
+                <img src="/chainfunder-mark.png" alt="ChainFunder logo" className="w-full h-full object-contain" />
               </div>
               <span className="font-display text-xl font-bold gradient-text">
                 ChainFunder

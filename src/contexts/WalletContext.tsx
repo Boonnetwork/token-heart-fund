@@ -26,6 +26,8 @@ interface WalletContextType {
 const WalletContext = createContext<WalletContextType | undefined>(undefined);
 
 export const BSC_TESTNET_CHAIN_ID = 97;
+const BSC_TESTNET_RPC = 'https://data-seed-prebsc-1-s1.bnbchain.org:8545';
+const readOnlyProvider = new ethers.providers.JsonRpcProvider(BSC_TESTNET_RPC);
 
 type InjectedEthereumProvider = {
   isMetaMask?: boolean;
@@ -96,9 +98,9 @@ export const WalletProvider: React.FC<{ children: ReactNode }> = ({ children }) 
     setFallbackChainId(null);
   }, [clearInjectedListeners]);
 
-  const updateBalance = useCallback(async (addr: string, prov: ethers.providers.Web3Provider) => {
+  const updateBalance = useCallback(async (addr: string, _prov?: ethers.providers.Web3Provider) => {
     try {
-      const bal = await prov.getBalance(addr);
+      const bal = await readOnlyProvider.getBalance(addr);
       setBalance(ethers.utils.formatEther(bal));
       return true;
     } catch (error) {
