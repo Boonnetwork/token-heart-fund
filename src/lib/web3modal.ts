@@ -17,10 +17,10 @@ const bscTestnet = {
 
 // Metadata for the dApp
 const metadata = {
-  name: "CrowdFund Platform",
-  description: "Decentralized crowdfunding platform on BNB Smart Chain",
+  name: "ChainFunder",
+  description: "Humanitarian crowdfunding powered by blockchain on BNB Smart Chain",
   url: typeof window !== "undefined" ? window.location.origin : "https://crowdfund.app",
-  icons: ["https://avatars.githubusercontent.com/u/37784886"],
+  icons: [typeof window !== "undefined" ? `${window.location.origin}/chainfunder-mark.png` : "/chainfunder-mark.png"],
 };
 
 // Ethers config

@@ -40,11 +40,10 @@ const Governance = () => {
       <Layout>
         <div className="container mx-auto px-4 py-20 text-center max-w-lg">
           <AlertCircle className="w-16 h-16 text-muted-foreground mx-auto mb-6" />
-          <h1 className="font-display text-2xl font-bold mb-3">Governance Not Configured</h1>
-          <p className="text-muted-foreground mb-6">
-            The admin needs to deploy <code className="px-1 bg-muted rounded">CFDGovernance.sol</code> and set its address in Settings.
+          <h1 className="font-display text-2xl font-bold mb-3">Governance in Progress</h1>
+          <p className="text-muted-foreground">
+            Community proposal and voting tools are being prepared.
           </p>
-          <Button variant="gradient" asChild><Link to="/settings">Go to Settings</Link></Button>
         </div>
       </Layout>
     );

@@ -13,7 +13,7 @@ import { useReferral } from '@/hooks/useReferral';
 import {
   Coins, TrendingUp, Gift, Layers, Loader2, AlertCircle, ArrowUpRight, ArrowDownRight, Wallet,
 } from 'lucide-react';
-import { Link, Navigate } from 'react-router-dom';
+import { Navigate } from 'react-router-dom';
 import { ethers } from 'ethers';
 import { toast } from 'sonner';
 
@@ -40,15 +40,10 @@ const Staking = () => {
       <Layout>
         <div className="container mx-auto px-4 py-20 text-center max-w-lg">
           <AlertCircle className="w-16 h-16 text-muted-foreground mx-auto mb-6" />
-          <h1 className="font-display text-2xl font-bold mb-3">Staking Not Configured</h1>
-          <p className="text-muted-foreground mb-6">
-            The staking contract address hasn't been set. The admin can deploy
-            <code className="px-1 mx-1 bg-muted rounded">CFDStaking.sol</code> and configure its
-            address from the Settings page.
+          <h1 className="font-display text-2xl font-bold mb-3">Don’t Fret, Staking is Coming Soon</h1>
+          <p className="text-muted-foreground">
+            We’re preparing staking for the ChainFunder community.
           </p>
-          <Button variant="gradient" asChild>
-            <Link to="/settings">Go to Settings</Link>
-          </Button>
         </div>
       </Layout>
     );

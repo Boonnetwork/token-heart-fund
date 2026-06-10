@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { ethers } from 'ethers';
 import { toast } from 'sonner';
 import { useContracts } from '@/contexts/ContractContext';
+import { useWallet } from '@/contexts/WalletContext';
 
 export type ProposalStatus = 'Active' | 'Passed' | 'Rejected' | 'Executed';
 const STATUS_MAP: ProposalStatus[] = ['Active', 'Passed', 'Rejected', 'Executed'];
@@ -24,6 +25,7 @@ const getTxUrl = (h: string) => `https://testnet.bscscan.com/tx/${h}`;
 
 export const useGovernance = () => {
   const { governanceContract, tokenDecimals } = useContracts();
+  const { signer } = useWallet();
   const [proposals, setProposals] = useState<Proposal[]>([]);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -71,10 +73,10 @@ export const useGovernance = () => {
   }, [governanceContract]);
 
   const createProposal = useCallback(async (title: string, description: string, votingPeriodSecs: number): Promise<boolean> => {
-    if (!governanceContract) { toast.error('Governance contract not configured'); return false; }
+    if (!governanceContract || !signer) { toast.error('Governance contract not configured'); return false; }
     try {
       toast.loading('Submitting proposal…', { id: 'gov-create' });
-      const tx = await governanceContract.createProposal(title, description, votingPeriodSecs);
+      const tx = await governanceContract.connect(signer).createProposal(title, description, votingPeriodSecs);
       await tx.wait(1);
       toast.success(`Proposal created! Tx: ${shortenTxHash(tx.hash)}`, { id: 'gov-create', action: { label: 'View', onClick: () => window.open(getTxUrl(tx.hash), '_blank') } });
       await fetchAll();
@@ -83,13 +85,13 @@ export const useGovernance = () => {
       toast.error(e.reason || 'Create failed', { id: 'gov-create' });
       return false;
     }
-  }, [governanceContract, fetchAll]);
+  }, [governanceContract, signer, fetchAll]);
 
   const vote = useCallback(async (id: number, support: boolean): Promise<boolean> => {
-    if (!governanceContract) { toast.error('Governance contract not configured'); return false; }
+    if (!governanceContract || !signer) { toast.error('Governance contract not configured'); return false; }
     try {
       toast.loading('Casting vote…', { id: 'gov-vote' });
-      const tx = await governanceContract.vote(id, support);
+      const tx = await governanceContract.connect(signer).vote(id, support);
       await tx.wait(1);
       toast.success(`Vote recorded! Tx: ${shortenTxHash(tx.hash)}`, { id: 'gov-vote', action: { label: 'View', onClick: () => window.open(getTxUrl(tx.hash), '_blank') } });
       await fetchAll();
@@ -98,13 +100,13 @@ export const useGovernance = () => {
       toast.error(e.reason || 'Vote failed', { id: 'gov-vote' });
       return false;
     }
-  }, [governanceContract, fetchAll]);
+  }, [governanceContract, signer, fetchAll]);
 
   const execute = useCallback(async (id: number): Promise<boolean> => {
-    if (!governanceContract) { toast.error('Governance contract not configured'); return false; }
+    if (!governanceContract || !signer) { toast.error('Governance contract not configured'); return false; }
     try {
       toast.loading('Executing proposal…', { id: 'gov-exec' });
-      const tx = await governanceContract.execute(id);
+      const tx = await governanceContract.connect(signer).execute(id);
       await tx.wait(1);
       toast.success(`Executed! Tx: ${shortenTxHash(tx.hash)}`, { id: 'gov-exec' });
       await fetchAll();
@@ -113,7 +115,7 @@ export const useGovernance = () => {
       toast.error(e.reason || 'Execute failed', { id: 'gov-exec' });
       return false;
     }
-  }, [governanceContract, fetchAll]);
+  }, [governanceContract, signer, fetchAll]);
 
   return { proposals, isLoading, fetchAll, formatProposal, hasVoted, createProposal, vote, execute };
 };
