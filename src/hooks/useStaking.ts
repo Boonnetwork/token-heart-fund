@@ -32,7 +32,7 @@ const shortenTxHash = (h: string) => `${h.slice(0, 10)}...${h.slice(-8)}`;
 const getTxUrl = (h: string) => `https://testnet.bscscan.com/tx/${h}`;
 
 export const useStaking = () => {
-  const { address } = useWallet();
+  const { address, signer } = useWallet();
   const { stakingContract, tokenContract, tokenDecimals, tokenSymbol, settings, refreshTokenBalance } = useContracts();
   const [state, setState] = useState<StakingState>(empty);
   const [isLoading, setIsLoading] = useState(false);
@@ -84,13 +84,13 @@ export const useStaking = () => {
   useEffect(() => { fetch(); }, [fetch]);
 
   const ensureAllowance = useCallback(async (amount: string): Promise<boolean> => {
-    if (!tokenContract || !address || !settings.stakingAddress) return false;
+    if (!tokenContract || !signer || !address || !settings.stakingAddress) return false;
     try {
       const need = ethers.utils.parseUnits(amount, tokenDecimals);
       const current = await tokenContract.allowance(address, settings.stakingAddress);
       if (current.gte(need)) return true;
       toast.loading('Approving tokens…', { id: 'stake-approve' });
-      const tx = await tokenContract.approve(settings.stakingAddress, ethers.constants.MaxUint256);
+      const tx = await tokenContract.connect(signer).approve(settings.stakingAddress, ethers.constants.MaxUint256);
       await tx.wait(1);
       toast.success('Approval confirmed', { id: 'stake-approve' });
       return true;
@@ -98,10 +98,10 @@ export const useStaking = () => {
       toast.error(e.reason || 'Approval failed', { id: 'stake-approve' });
       return false;
     }
-  }, [tokenContract, address, settings.stakingAddress, tokenDecimals]);
+  }, [tokenContract, signer, address, settings.stakingAddress, tokenDecimals]);
 
   const stake = useCallback(async (amount: string, referrer: string | null): Promise<boolean> => {
-    if (!stakingContract) { toast.error('Staking contract not configured'); return false; }
+    if (!stakingContract || !signer) { toast.error('Staking contract not configured'); return false; }
     if (parseFloat(amount) <= 0) { toast.error('Enter a valid amount'); return false; }
     try {
       if (!(await ensureAllowance(amount))) return false;
@@ -109,7 +109,7 @@ export const useStaking = () => {
         ? referrer
         : ethers.constants.AddressZero;
       toast.loading('Staking…', { id: 'stake' });
-      const tx = await stakingContract.stake(ethers.utils.parseUnits(amount, tokenDecimals), ref);
+      const tx = await stakingContract.connect(signer).stake(ethers.utils.parseUnits(amount, tokenDecimals), ref);
       await tx.wait(1);
       toast.success(`Staked! Tx: ${shortenTxHash(tx.hash)}`, { id: 'stake', action: { label: 'View', onClick: () => window.open(getTxUrl(tx.hash), '_blank') } });
       await Promise.all([fetch(), refreshTokenBalance()]);
@@ -118,13 +118,13 @@ export const useStaking = () => {
       toast.error(e.reason || 'Stake failed', { id: 'stake' });
       return false;
     }
-  }, [stakingContract, tokenDecimals, ensureAllowance, fetch, refreshTokenBalance]);
+  }, [stakingContract, signer, tokenDecimals, ensureAllowance, fetch, refreshTokenBalance]);
 
   const unstake = useCallback(async (amount: string): Promise<boolean> => {
-    if (!stakingContract) { toast.error('Staking contract not configured'); return false; }
+    if (!stakingContract || !signer) { toast.error('Staking contract not configured'); return false; }
     try {
       toast.loading('Unstaking…', { id: 'unstake' });
-      const tx = await stakingContract.unstake(ethers.utils.parseUnits(amount, tokenDecimals));
+      const tx = await stakingContract.connect(signer).unstake(ethers.utils.parseUnits(amount, tokenDecimals));
       await tx.wait(1);
       toast.success(`Unstaked! Tx: ${shortenTxHash(tx.hash)}`, { id: 'unstake', action: { label: 'View', onClick: () => window.open(getTxUrl(tx.hash), '_blank') } });
       await Promise.all([fetch(), refreshTokenBalance()]);
@@ -133,13 +133,13 @@ export const useStaking = () => {
       toast.error(e.reason || 'Unstake failed', { id: 'unstake' });
       return false;
     }
-  }, [stakingContract, tokenDecimals, fetch, refreshTokenBalance]);
+  }, [stakingContract, signer, tokenDecimals, fetch, refreshTokenBalance]);
 
   const claim = useCallback(async (): Promise<boolean> => {
-    if (!stakingContract) { toast.error('Staking contract not configured'); return false; }
+    if (!stakingContract || !signer) { toast.error('Staking contract not configured'); return false; }
     try {
       toast.loading('Claiming rewards…', { id: 'claim-stake' });
-      const tx = await stakingContract.claimRewards();
+      const tx = await stakingContract.connect(signer).claimRewards();
       await tx.wait(1);
       toast.success(`Rewards claimed! Tx: ${shortenTxHash(tx.hash)}`, { id: 'claim-stake', action: { label: 'View', onClick: () => window.open(getTxUrl(tx.hash), '_blank') } });
       await Promise.all([fetch(), refreshTokenBalance()]);
@@ -148,7 +148,7 @@ export const useStaking = () => {
       toast.error(e.reason || 'Claim failed', { id: 'claim-stake' });
       return false;
     }
-  }, [stakingContract, fetch, refreshTokenBalance]);
+  }, [stakingContract, signer, fetch, refreshTokenBalance]);
 
   return { state, isLoading, tokenSymbol, fetch, stake, unstake, claim };
 };
