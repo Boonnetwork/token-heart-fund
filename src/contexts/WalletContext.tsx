@@ -37,7 +37,7 @@ type InjectedEthereumProvider = {
   removeListener?: (event: string, callback: (...args: any[]) => void) => void;
 };
 
-const MOBILE_DEVICE_REGEX = /android|iphone|ipad|ipod/i;
+
 
 const getInjectedProvider = (): InjectedEthereumProvider | undefined => {
   if (typeof window === 'undefined') return undefined;
@@ -60,6 +60,7 @@ export const WalletProvider: React.FC<{ children: ReactNode }> = ({ children }) 
   const [fallbackAddress, setFallbackAddress] = useState<string | null>(null);
   const [fallbackChainId, setFallbackChainId] = useState<number | null>(null);
   const balanceRetryRef = useRef<NodeJS.Timeout | null>(null);
+  const connectingRef = useRef<boolean>(false);
   const injectedProviderRef = useRef<InjectedEthereumProvider | null>(null);
   const injectedListenersRef = useRef<{
     accountsChanged?: (accounts: string[]) => void;
@@ -238,19 +239,15 @@ export const WalletProvider: React.FC<{ children: ReactNode }> = ({ children }) 
   }, [activeAddress, activeChainId, activeIsConnected, provider, updateBalance]);
 
   const connectWallet = useCallback(async () => {
-    if (isConnecting || activeIsConnected) return;
+    if (connectingRef.current || activeIsConnected) return;
 
+    connectingRef.current = true;
     setIsConnecting(true);
 
     try {
       const injectedProvider = getInjectedProvider();
       if (injectedProvider?.request) {
         await connectInjectedWallet(injectedProvider);
-        return;
-      }
-
-      if (MOBILE_DEVICE_REGEX.test(navigator.userAgent)) {
-        toast.info('Open ChainFunder inside your wallet browser to connect without repeated app prompts.');
         return;
       }
 
@@ -263,9 +260,10 @@ export const WalletProvider: React.FC<{ children: ReactNode }> = ({ children }) 
         toast.error('Failed to connect wallet');
       }
     } finally {
+      connectingRef.current = false;
       setIsConnecting(false);
     }
-  }, [activeIsConnected, connectInjectedWallet, isConnecting, open]);
+  }, [activeIsConnected, connectInjectedWallet, open]);
 
   const disconnectWallet = useCallback(() => {
     clearFallbackSession();
